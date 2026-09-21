@@ -1,0 +1,7 @@
+condition,n,mean_final_world_distance,sample_sd_final_world_distance,success_005,success_008,scope,interpretation
+input_forms,4,0.066312,0.004092,0/4,4/4,"fixed target, language instruction, VLM scene selection, target-image input","input-form comparison"
+multi_target,8,0.067798,0.016732,1/8,8/8,"eight target objects, seed 42","small target sweep"
+multi_seed,3,0.058707,0.023266,1/3,3/3,"red moon, seeds 42/43/44","seed variability"
+semantic_ablation,3,0.056795,0.013584,1/3,3/3,"default, precise, fast","semantic-control settings"
+all_latest_runs,18,0.064119,0.015025,3/18,18/18,"union of the four conditions","bounded diagnostic suite"
+

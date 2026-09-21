@@ -1,0 +1,6 @@
+condition,n,success_008,natural_requeries,mean_final_world_distance,sample_sd_final_world_distance,min_final,max_final,interpretation
+matched_no_event,3,3/3,0/3,0.058707,0.023266,0.033165,0.078689,"control succeeds; no trigger path"
+matched_event_enabled,3,3/3,3/3,0.058707,0.023266,0.033165,0.078689,"trigger executes; no matched recovery gain"
+forced_scene_audit,3,3/3,1/3,0.073360,0.007760,0.064403,0.078052,"separate forced query audit"
+all_event_rows,9,9/9,4/9,0.063591,0.018422,0.033165,0.078689,"strict no-cache implementation supplement"
+

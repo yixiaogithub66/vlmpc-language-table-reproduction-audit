@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this artifact, please cite the associated manuscript and the v1.0.0 release."
+title: "VLMPC Language-Table Reproduction Audit"
+type: software
+version: 1.0.0
+date-released: 2026-09-21
+authors:
+  - family-names: Yi
+    given-names: Xiao
+  - family-names: Zhou
+    given-names: Yuanqiang
+repository-code: "https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit"
+url: "https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit/releases/tag/v1.0.0"
+abstract: >-
+  Public revision artifact containing the manuscript source, sanitized derived
+  evidence, experiment drivers, and reproducibility documentation for a
+  traceable audit of VLMPC-style Language-Table pushing.

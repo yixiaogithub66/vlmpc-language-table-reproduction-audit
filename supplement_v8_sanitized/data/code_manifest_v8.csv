@@ -1,0 +1,11 @@
+relative_path,sha256_prefix16,role
+VLMPC/vlmpc-master/vlmpc-master/main.py,d8078e7cba86a7da,canonical controller entry point
+VLMPC/vlmpc-master/vlmpc-master/vlmpc.py,8fad3d94414f81e0,canonical MPC implementation
+VLMPC/vlmpc-master/vlmpc-master/vlm_client.py,8efa7bad1aa8ea7b,VLM client
+VLMPC/vlmpc-master/vlmpc-master/stage_experiments/run_event_requery_controls.py,b35fb14b9d9d36b4,matched event-control driver
+VLMPC/vlmpc-master/vlmpc-master/stage_experiments/run_revision_target_image_matrix.py,b1d0827d6e5ee4e6,revision target-image driver
+VLMPC/vlmpc-master/vlmpc-master/stage_experiments/run_revision_event_recovery_audit.py,719b6a9f74e07ae2,revision semantic-fault driver
+dmvfn_221.pkl,b5ddb82a4ea0,video-prediction checkpoint
+detector_checkpoint.pt,b9e0757ad8da,detector checkpoint
+model.pth,366c7ea4bfed,tracker checkpoint
+pysot-master/experiments/siamrpn_alex_dwxcorr/config.yaml,40ed278d4b4d,tracker configuration

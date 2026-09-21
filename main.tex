@@ -1,0 +1,492 @@
+\documentclass[conference]{IEEEtran}
+
+\IEEEoverridecommandlockouts
+
+\input{glyphtounicode}
+\pdfgentounicode=1
+\usepackage{cmap}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{xcolor}
+
+\graphicspath{{figures/}}
+\raggedbottom
+\setlength{\textfloatsep}{6pt plus 1pt minus 1pt}
+\setlength{\floatsep}{5pt plus 1pt minus 1pt}
+\setlength{\dbltextfloatsep}{6pt plus 1pt minus 1pt}
+\setlength{\dblfloatsep}{5pt plus 1pt minus 1pt}
+\setlength{\abovedisplayskip}{4pt plus 1pt minus 1pt}
+\setlength{\belowdisplayskip}{4pt plus 1pt minus 1pt}
+\setlength{\abovecaptionskip}{3pt plus 1pt minus 1pt}
+\setlength{\belowcaptionskip}{0pt plus 1pt minus 1pt}
+
+\newcommand{\MPC}{\mathrm{MPC}}
+\newcommand{\VLM}{\mathrm{VLM}}
+\newcommand{\distw}{d_{\mathrm{world}}}
+\newcommand{\pass}{\textsc{pass}}
+\newcommand{\fail}{\textsc{fail}}
+
+\title{Traceable Reproduction Audit and Feedback-Assisted Semantic-MPC\\
+for VLMPC-Style Language-Table Pushing}
+
+
+\author{%
+\IEEEauthorblockN{Xiao Yi}
+\IEEEauthorblockA{\textit{College of Computer Science and Technology}\\
+\textit{Tongji University}\\
+Shanghai, China}
+\and
+\IEEEauthorblockN{Yuanqiang Zhou}
+\IEEEauthorblockA{\textit{Department of Control Science and Engineering}\\
+\textit{College of Electronics and Information Engineering}\\
+\textit{Tongji University}\\
+Shanghai, China}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Vision-language model predictive control (VLMPC) links semantic perception with receding-horizon control, but a reproduction study must distinguish an executable implementation from reliable closed-loop behavior. This paper audits a VLMPC-style Language-Table pushing system under a traceable evaluation protocol covering language and image inputs, parameter ablations, event-triggered VLM re-query, and target-image grounding. The closest unmodified video-prediction MPC reproduction executes and logs raw planner actions, but reaches 0/4 controller-comparison and 0/8 parameter-ablation successes at the $\distw^{\mathrm{final}}\leq0.08$ evaluation tolerance. We then evaluate feedback-assisted diagnostic controllers that use privileged simulator-state feedback. Grounded original MPC obtains 4/4 and 8/8 diagnostic execution successes in the corresponding controller and ablation suites; all 12 runs replace 23/23 raw planner actions at execution. The latest semantic-MPC suite obtains 18/18 execution successes with mean final distance $0.0641\pm0.0150$ (sample SD) and maximum 0.0798. This success is threshold-dependent: at a stricter 0.05 threshold, semantic MPC succeeds in only 3/18 runs. A new target-image end-to-end matrix covers three target-image cases and three seeds (9 runs): VLM selection is correct in 8/9 runs, and the joint semantic-plus-control success is 7/8 among active trials after separating one pre-satisfied run. A paired semantic-fault audit recovers the correct target in 3/3 forced re-query trials and reaches the true-target threshold in 2/3, versus 0/3 without re-query; this is a controlled repair audit, not evidence of natural-event causal benefit. Fresh matched event controls still show no measurable recovery advantage. The resulting contribution is a negative unmodified reproduction audit plus a traceable feedback-assisted diagnostic stabilization study, not a benchmark-level proof of unmodified VLMPC success.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Vision-language model predictive control, semantic MPC, Language-Table, reproduction audit, event re-query, target-image grounding.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Robotic manipulation systems increasingly need to connect semantic understanding, visual perception, and closed-loop control. A table-top pushing task appears simple, yet a successful controller must recognize the relevant object, ground the goal, choose a feasible push direction, recover from perception drift, and stop near the target region. Model predictive control (MPC) is useful in such settings because it repeatedly predicts future states, optimizes candidate controls, and executes only the first action before replanning \cite{mayne2000mpc,rawlings2017mpc}. Classical MPC, however, usually assumes that state variables and objectives are already available. Vision-language models (VLMs) and vision-language-action systems add semantic grounding and instruction understanding \cite{ahn2022saycan,brohan2023rt2,huang2022inner}, but they still require reliable low-level control to produce stable physical behavior.
+
+VLMPC aims to bridge these two sides by placing VLM-based semantic evaluation inside a visual MPC loop \cite{zhao2024vlmpc}. The original framework takes a goal image or language instruction, samples candidate action sequences, predicts future visual observations, and evaluates the predictions with a hierarchical cost. Later trajectory-level variants further suggest that reducing the burden of video prediction can improve long-horizon manipulation planning \cite{chen2025trajvlmpc}. For a constrained local reproduction study, the key question is therefore not only whether the program can run, but what experimental evidence supports each success claim.
+
+This paper summarizes our study around that question. We use Language-Table push-to-corner tasks and evaluate four components: the unmodified video-prediction MPC chain, a grounded original MPC diagnostic controller, a semantic MPC diagnostic controller, and an event-triggered VLM re-query mechanism. The central reporting choice is to keep negative results visible. The unmodified reproduction is executable and logged, but it remains unsuccessful under the archived threshold. The successful results come from feedback-assisted diagnostic paths and are therefore reported with a privileged-state flag. In particular, the 18/18 and 4/4 positive numbers are execution or semantic-selection results for diagnostic branches, not successful reproductions of the original VLMPC controller. This separation is important because otherwise a stabilized engineering path could be mistaken for a faithful reproduction of the original video-prediction controller.
+
+The contributions are:
+\begin{enumerate}
+\setlength{\itemsep}{0pt}
+\item A traceable reproduction audit of a VLMPC-style Language-Table manipulation chain, including unmodified controller comparison and original parameter ablation.
+\item A conservative symptom analysis that connects failed runs to logged tracking jumps, visual-prediction/control mismatch, parameter sensitivity, and absence of final-action feedback, without claiming single-factor causality.
+\item Two bounded diagnostic enhancements: grounded original MPC, which preserves raw planner calls but applies final action correction, and semantic MPC, which combines semantic target selection with state-feedback pushing.
+\item A branch-level accounting of planner authority, including the grounded branch's raw-action replacement rate and the semantic branch's zero active raw-sampling budget.
+\item A file-traceable experimental package with summary CSVs, metrics JSON files, logs, figures, qualitative videos, matched event controls, a repeated target-image end-to-end matrix, and a controlled semantic-fault re-query audit.
+\end{enumerate}
+
+\section{Related Work}
+\subsection{Visual MPC and Video-Prediction Control}
+Visual MPC uses learned visual dynamics to support model-based manipulation directly in image space. Deep visual foresight and related visual MPC systems showed that action-conditioned video prediction can guide robot motion without a hand-designed dynamics model \cite{finn2017deep,ebert2018visual}. Such approaches are attractive for open-ended manipulation, but they are also sensitive to prediction bias, object occlusion, and long-horizon compounding errors. These limitations are relevant to our reproduction: the planner can generate candidate futures and rank actions, but the unmodified closed loop does not reliably drive the object to the selected goal region.
+
+\subsection{Vision-Language Manipulation}
+Language-conditioned manipulation has used VLMs and language models for task grounding, affordance selection, reasoning, and failure interpretation. CLIPort separates semantic ``what'' reasoning from spatial ``where'' execution \cite{shridhar2021cliport}. SayCan grounds language plans with affordances \cite{ahn2022saycan}. Inner Monologue emphasizes feedback-aware embodied reasoning \cite{huang2022inner}, and VoxPoser composes 3D value maps for robotic manipulation from language-model reasoning \cite{huang2023voxposer}. These systems motivate our use of explicit feedback and event handling: semantic decisions must be connected to low-level execution evidence, not only to high-level task labels.
+
+\subsection{VLMPC, Trajectory Variants, and Testing}
+VLMPC integrates VLM perception with MPC-style candidate action evaluation \cite{zhao2024vlmpc}. Traj-VLMPC further reduces computational overhead by using trajectory generation rather than full video prediction \cite{chen2025trajvlmpc}. At the same time, evaluation work such as VLATest argues that VLM/VLA manipulation systems require robustness and reliability tests beyond isolated demonstrations \cite{wang2024vlatest}. Failure-reasoning systems such as AHA also show the value of identifying manipulation failure modes \cite{duan2024aha}. Our work follows this evaluation-oriented line: we do not hide failed unmodified runs, and we mark diagnostic controllers that use privileged state feedback.
+
+\section{Evaluation Setup and Evidence Sources}
+\subsection{Task Definition}
+The experiment uses Language-Table desktop pushing tasks. A target object such as \emph{red moon}, \emph{blue cube}, or \emph{yellow pentagon} should be pushed toward a designated corner. The controller input can be a fixed target label, a natural-language instruction, a target image, or a VLM-based scene selection request. The action is a planar end-effector push in the simulated table environment.
+
+The primary metric is the final world-coordinate distance between the target object and the goal:
+\begin{equation}
+  \mathrm{success} = \mathbb{I}\left[\distw^{\mathrm{final}} \leq 0.08\right].
+  \label{eq:success}
+\end{equation}
+The threshold 0.08 is an evaluation tolerance used consistently in the archived final runs, not a universal manipulation success criterion. Threshold sensitivity changes the interpretation of the positive results: at 0.05, the archived grounded diagnostic suites drop to 0/4 and 0/8, and the latest semantic MPC suite succeeds in only 3/18 runs. We therefore report success rates primarily as evidence of coarse task completion under the evaluation tolerance, not precision placement.
+
+For the new target-image matrix, we distinguish a \emph{pre-satisfied} run, for which the true target is already within the threshold before the first action, from an \emph{active control} trial, which starts outside the threshold and executes at least one action. \emph{Joint active success} requires both correct target-image semantic selection and active control success. This prevents a zero-step terminal state from being counted as controller evidence.
+
+\subsection{Evidence Artifacts}
+All numerical results in this paper are extracted from the study package. The main evidence files are:
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\item \texttt{summary.csv} files for unmodified controller comparison, unmodified parameter ablation, grounded original completion, and semantic MPC full rerun;
+\item \texttt{metrics.json} files containing final distance, runtime, action counts, VLM requests, re-query counts, and raw planner/override counts;
+\item \texttt{log.txt} files containing VLM responses, object-position jumps, and event-trigger messages;
+\item supplement CSVs for matched event controls, the nine-run target-image matrix, the semantic-fault re-query audit, exact method parameters, checkpoint/code hashes, and VLM cache status;
+\item GIF/MP4 outputs and key frames used as qualitative evidence;
+\item robustness-edge audit CSVs covering occlusion, viewpoint proxy, brightness shift, and unknown-target rejection.
+\end{itemize}
+The reporting goal is to make every claim traceable to these artifacts rather than to a post-hoc manual description. The final online VLM path is logged as an OpenAI-compatible backend using the responses wire API and a \texttt{gpt-5.5}-labeled gateway model alias. We report this alias because it affects reproducibility, while excluding the API key and gateway base URL from the paper text. The revision controls use strict no-cache mode and record zero cache hits. They still do not prove that natural re-query causes recovery because matched no-event controls also succeed. The public revision artifact is available at \url{https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit} (release \texttt{v1.0.0}). It contains sanitized target-image and semantic-fault summaries, a reproduction guide, parameter records, a code/checkpoint hash manifest, and a reviewer-facing source snapshot. Third-party model weights are not redistributed and must be obtained from their original sources.
+
+\section{Method}
+\subsection{Unmodified Reproduction Chain}
+The unmodified reproduction follows a VLMPC-style loop. A task input is grounded to a target, candidate action sequences are sampled, a visual prediction model forecasts future observations, and a cost function ranks the candidates before the first action is executed. Controller comparison includes baseline, improved, literature, and literature-v2 settings. Parameter ablation varies sampling budget and cost settings.
+
+In this branch, no final-action state-feedback correction is applied. This distinction is crucial: these runs represent the closest archived reproduction of the original video-prediction MPC chain in our project, and they are evaluated separately from later enhancements.
+
+\subsection{Archived Implementation Parameters}
+Table~\ref{tab:methodparams} summarizes the recoverable implementation parameters. The unmodified planner uses horizon $H=20$, action dimension 2, and a correlated-noise sampler with $\beta=0.5$. The command-line defaults are 200 samples and replan frequency 5, while the archived ablation set contains eight logged configurations rather than a complete $3\times3$ grid. The literature-style cost is
+\begin{equation}
+\begin{split}
+J ={}& d_{\mathrm{obj,goal}} + 0.35d_{\mathrm{contact}} +0.15d_{\mathrm{arm,obj}}
+ + 18.0J_{\mathrm{align}}  \\
+&+24.0J_{\mathrm{obs}} -1.2\Delta d
+ + 12.0\mathbb{I}[\Delta d < 1.0],
+\end{split}
+\label{eq:cost}
+\end{equation}
+with obstacle decay 42 pixels. In the close-range branch, the contact, alignment, progress-reward, and non-progress terms are changed to 0.10, 6.0, 1.8, and 20.0, respectively. These values are implementation parameters recovered from \texttt{vlmpc.py}, not tuned benchmark claims.
+
+\begin{table}[!t]
+\centering
+\caption{Recoverable implementation parameters from code, metrics, and supplement CSVs.}
+\label{tab:methodparams}
+\scriptsize
+\begin{tabular}{@{}p{0.33\columnwidth}@{\hspace{4pt}}p{0.63\columnwidth}@{}}
+\toprule
+Parameter & Archived value or rule \\
+\midrule
+Environment & BLOCK\_8 Language-Table, 10 Hz, seed 42; archived semantic audit uses 42/43/44; revision matrix uses 45/46/47 \\
+Raw MPC & action dim. 2, horizon 20; sampled candidates clipped to $[-0.02,0.02]$, executed action/feedback bound $[-0.08,0.08]$ \\
+Budgets & default 200/5 samples/plan frequency; eight archived ablations: pf1/ns5, pf2/ns5, pf2/ns10, pf3/ns10, pf2/ns15, cost history low, cost default, cost target high \\
+Detector/tracker & YOLO conf. 0.5; Pysot SiamRPN tracker \\
+Cost weights & contact/approach/alignment/obstacle $=0.35/0.15/18.0/24.0$ \\
+Progress terms & reward 1.2, non-progress penalty 12.0, min gain 1.0, obstacle decay 42 px \\
+Close range & distance 135 px; contact/alignment/reward/penalty $=0.10/6.0/1.8/20.0$ \\
+Feedback push & contact offset 0.06, clearance 0.12, move step 0.06, push step 0.075, tolerance 0.018 \\
+Original event & default window/min-progress/min-step $=3/1.0/3$; matched controls use $2/25.0/3$ \\
+Semantic event & window 4, min progress 0.002, distance floor $1.5\times$ success distance \\
+Online VLM & OpenAI-compatible responses API with \texttt{gpt-5.5}-labeled gateway model; API key and base URL excluded \\
+Success threshold & evaluation tolerance $\distw\leq0.08$; strict audit also reports 0.05 and 0.10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The main reproducibility artifacts are also hashed in the supplement: \texttt{dmvfn\_221.pkl} (SHA-256 prefix \texttt{b5ddb82a4ea0}), \texttt{detector\_checkpoint.pt} (\texttt{b9e0757ad8da}), tracker model \texttt{model.pth} (\texttt{366c7ea4bfed}), and tracker config \texttt{config.yaml} (\texttt{40ed278d4b4d}). The revision source snapshot records \texttt{main.py}, \texttt{vlmpc.py}, and \texttt{vlm\_client.py} with prefixes \texttt{d8078e7cba86}, \texttt{8fad3d94414f}, and \texttt{8efa7bad1aa8}; the two new audit drivers are recorded separately in the v8 manifest.
+
+\subsection{Grounded Original MPC}
+Grounded original MPC is a diagnostic enhancement. The raw planner path still runs, and raw MPC actions are recorded. After the raw action is obtained, a simulator-state feedback push correction is used for the executed action. The correction is bounded by action clipping and uses object, end-effector, and goal positions available from the simulator state. Across the 12 grounded runs (4 controller-comparison runs and 8 ablation runs), the logs contain 23 raw planner actions and 23 feedback overrides per run: the executed-action replacement rate is therefore 23/23, or 100\%, in every run. The raw planner remains useful for traceability and branch comparison, but it is not the authority over the executed action in this diagnostic branch.
+
+This design answers a diagnostic question: if the raw VLMPC-style planner is allowed to remain in the loop, can final-action feedback stabilize the same task? It does not answer whether the unmodified video-prediction MPC itself succeeds. For that reason, every grounded result is marked as using privileged state feedback.
+
+The grounded and semantic branches use simulator-state feedback and therefore answer a diagnostic question rather than a reproduction question. The feedback action uses object, end-effector, and goal positions from simulator state. Let $\hat{d}_{\mathrm{push}}=(x_{\mathrm{goal}}-x_{\mathrm{obj}})/\|x_{\mathrm{goal}}-x_{\mathrm{obj}}\|$ and $x_{\mathrm{contact}}=x_{\mathrm{obj}}-0.06\hat{d}_{\mathrm{push}}$. The controller first stages the end effector near a side-clearance point, then moves to contact, and finally pushes:
+\begin{equation}
+  u_t = \mathrm{clip}\left(\alpha \hat{d}_{\mathrm{push}} +
+  \beta(x_{\mathrm{contact}} - x_{\mathrm{ee}}), -0.08, 0.08\right).
+  \label{eq:feedback}
+\end{equation}
+In the push phase, $\alpha=0.075$ and $\beta=0.45$; the stage/contact phases instead use a step-limited move of at most 0.06. This tests whether feedback access can stabilize the same archived tasks after the unmodified video-prediction chain fails. Its success rates should not be compared directly with the original VLMPC algorithm or with visual-only baselines that do not receive simulator state.
+
+\subsection{Semantic MPC}
+Semantic MPC is a second diagnostic path. It uses semantic target selection from fixed labels, language instructions, target images, or VLM scene selection, and then performs low-level pushing with state feedback. The strict repair adds an \texttt{auto|vlm|vision} target-image selector: in \texttt{auto} mode the system sends the target image and the current scene image to the configured VLM and asks it to choose among visible scene candidates. The outer loop retains repeated receding-horizon execution and logging, but the final semantic push uses no active raw video-prediction sampling budget ($N_{\mathrm{raw}}=0$); the state-feedback law, rather than a cost-ranked raw action, determines the executed push. It is therefore a stabilized semantic-control baseline within this project, not a faithful reproduction of the raw video-prediction MPC chain.
+
+\subsection{Event-Triggered VLM Re-query}
+The event mechanism is designed to avoid repeated VLM calls unless tracking or progress conditions become unreliable. In the matched controls, the natural re-query is not forced: \texttt{forced\_initial\_requery} is false for the no-event and event-enabled rows. The strict 2026-06-20 controls run with cache disabled, record zero cache hits, and log fresh responses through the responses wire API. This supports an implementation claim that the event path can fire in matched settings. Because no-event and event-enabled controls both succeed with identical final distances for each seed, the data do not support a causal recovery claim.
+
+To make the recovery question measurable without relabeling a naturally successful run, the revision adds a separate paired semantic-fault audit. Each seed starts with the true target replaced by a deliberately wrong initial target (blue cube instead of red moon). The treatment forces one explicitly labeled synthetic audit re-query at step 3; the control keeps the wrong target for the run. Evaluation is performed against the independent true target, and synthetic re-queries are reported separately from natural detector events. This audit tests whether the implementation can repair a known semantic corruption; it does not estimate natural-event sensitivity or establish a general causal benefit.
+
+\begin{table*}[!t]
+\centering
+\caption{Controller-branch responsibilities and action authority. ``Privileged'' denotes direct simulator-state access during execution.}
+\label{tab:branchroles}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}p{0.15\textwidth}p{0.23\textwidth}p{0.25\textwidth}p{0.22\textwidth}p{0.11\textwidth}@{}}
+\toprule
+Branch & Semantic/planning role & Actual MPC role & Executed action authority & State access \\
+\midrule
+Unmodified VLMPC & Ground target; sample action sequences; predict visual futures & Candidate ranking with a video-prediction cost; first raw action is executed & Raw planner action & Visual observations only \\
+Grounded original MPC & Preserve the same raw planner call and log its actions & Raw planner remains in the loop for comparison and traceability & Privileged state-feedback correction replaces the raw action (23/23 in all 12 runs) & Simulator state \\
+Semantic MPC & Select target from label, language, image, or VLM scene query & Receding-horizon execution/logging; no active raw video-prediction sampling ($N_{\mathrm{raw}}=0$) & Privileged state-feedback push law & Simulator state \\
+Event-control supplement & Monitor stagnation/semantic events and refresh the VLM instruction when triggered & Event logic controls query timing, not the low-level push optimizer & Same semantic-MPC feedback action & Simulator state \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\end{table*}
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=0.98\textwidth]{method_pipeline_v6.png}
+  \caption{Strict method overview. The unmodified reproduction branch is separated from feedback-assisted diagnostic branches. Grounded original MPC and semantic MPC use privileged state feedback for execution, so their successes are reported as diagnostic stabilization rather than unmodified VLMPC success. The event-control path verifies trigger execution under matched no-cache controls, not causal recovery.}
+  \label{fig:method}
+\end{figure*}
+
+\section{Experiments}
+\subsection{Experiment Groups}
+We organize experiments into two groups.
+\textbf{Unmodified reproduction} contains the controller comparison and original parameter ablation. These runs use the reproduced video-prediction MPC chain without final-action state feedback.
+\textbf{Feedback-assisted diagnostics} contains grounded controller comparison, grounded ablation, event re-query, and semantic MPC. These runs use privileged state feedback and are evaluated as stabilization diagnostics.
+
+\subsection{Unmodified Reproduction Results}
+Table~\ref{tab:unmodified} shows the unmodified reproduction results. Both suites fail under the 0.08 threshold. The final distances are not borderline: the mean values are around 0.25, far above the success threshold. The threshold sensitivity also remains 0\% at 0.10. This is the main negative result of the project and should be preserved in any final presentation.
+
+\begin{table}[!t]
+\centering
+\caption{Unmodified reproduction results. No privileged state feedback is used; final distance is mean $\pm$ sample SD.}
+\label{tab:unmodified}
+\footnotesize
+\begin{tabular}{lccccc}
+\toprule
+Suite & Runs & Succ. & Priv. & Final dist. & Max \\
+\midrule
+Controller & 4 & 0/4 & no & $0.2565{\pm}0.0319$ & 0.2825 \\
+Ablation & 8 & 0/8 & no & $0.2534{\pm}0.0304$ & 0.2939 \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+
+\footnotesize Threshold sensitivity at 0.05/0.08/0.10 is 0/4, 0/4, 0/4 for controller comparison and 0/8, 0/8, 0/8 for ablation.
+\end{table}
+
+\subsection{Feedback-Assisted Diagnostic Results}
+Table~\ref{tab:diagnostic} reports the feedback-assisted diagnostic controllers. These results are stable under the 0.08 evaluation threshold, but the privileged-state column changes their interpretation. Grounded original MPC reaches 4/4 successes in controller comparison and 8/8 successes in ablation. The identical grounded final distances should be read cautiously: after privileged final-action feedback is enabled, the terminal push correction dominates the last phase, so the tested raw-planner budget and cost variations affect runtime and traces more than terminal distance. The latest strict semantic-MPC suite reaches 18/18 execution successes across multiple input forms, targets, seeds, and semantic parameters, with final distances between 0.0297 and 0.0798. Across the four semantic conditions, the reported sample SDs range from 0.0041 to 0.0233; the seed-only subset is $0.0587\pm0.0233$ for seeds 42/43/44. The threshold sensitivity is a major caveat rather than a secondary detail: at 0.05, the latest semantic-MPC suite is only 3/18 successful. Execution success is therefore reported separately from unmodified VLMPC reproduction success. The new target-image matrix adds three cases and seeds 45/46/47. It obtains 8/9 correct VLM selections and 7/8 joint active successes after excluding one pre-satisfied run; its all-run final distance is $0.0967\pm0.1010$, dominated by the single wrong-selection failure. The paired semantic-fault audit recovers the correct target in 3/3 treatment runs and reaches the true-target threshold in 2/3, compared with 0/3 without re-query.
+
+\begin{table*}[!t]
+\centering
+\caption{Feedback-assisted diagnostic results. These runs use privileged simulator-state feedback for execution and are not direct unmodified VLMPC reproductions.}
+\label{tab:diagnostic}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}p{0.16\textwidth}p{0.06\textwidth}p{0.09\textwidth}p{0.30\textwidth}p{0.17\textwidth}p{0.12\textwidth}@{}}
+\toprule
+Suite & Runs & Exec. succ. & Evidence and semantic check & Final dist. & Priv. state \\
+\midrule
+Grounded controller & 4 & 4/4 & target fixed; 23/23 override & $0.0643{\pm}0.0000$ & yes \\
+Grounded ablation & 8 & 8/8 & target fixed; 23/23 override & $0.0643{\pm}0.0000$ & yes \\
+Event controls & 9 & 9/9 & trigger logged; cache hits 0 & $0.0636{\pm}0.0184$ & yes \\
+Semantic MPC latest & 18 & 18/18 & target-image audit 4/4; one end-to-end run & $0.0641{\pm}0.0150$ & yes \\
+Target-image matrix & 9 & 7/8 active & VLM selection 8/9; one pre-satisfied & $0.0967{\pm}0.1010$ & yes \\
+Semantic-fault audit & 6 paired & 2/3 treatment & synthetic repair 3/3; control 0/3 & $0.0650{\pm}0.0182$ treatment & yes \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\end{table*}
+
+\begin{table*}[!t]
+\centering
+\caption{Condition-wise variability for the latest semantic-MPC suite. Values are mean $\pm$ sample SD of final world distance; the 0.05 and 0.08 columns use $\distw^{\mathrm{final}}\leq$ the listed threshold.}
+\label{tab:variance}
+\scriptsize
+\begin{tabular}{@{}p{0.20\textwidth}ccccc p{0.25\textwidth}@{}}
+\toprule
+Condition & $n$ & Mean $\pm$ SD & $\leq0.05$ & $\leq0.08$ & Target/seed scope & Interpretation \\
+\midrule
+Input forms & 4 & $0.0663\pm0.0041$ & 0/4 & 4/4 & 3 forms + target image & Input-form comparison \\
+Multi-target & 8 & $0.0678\pm0.0167$ & 1/8 & 8/8 & 8 target objects & Small target sweep \\
+Multi-seed & 3 & $0.0587\pm0.0233$ & 1/3 & 3/3 & red moon, seeds 42/43/44 & Seed variability \\
+Semantic ablation & 3 & $0.0568\pm0.0136$ & 1/3 & 3/3 & default/precise/fast & Semantic-control settings \\
+All latest runs & 18 & $0.0641\pm0.0150$ & 3/18 & 18/18 & union of above & Bounded diagnostic suite \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{final_distance_distribution_v4}
+  \caption{Final-distance distribution across archived suites. The unmodified runs remain far above the 0.08 threshold, while feedback-assisted diagnostics cluster below it. The plot is intentionally distance-based rather than a redundant all-success bar chart.}
+  \label{fig:distance}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{threshold_sensitivity_v4}
+  \caption{Threshold sensitivity at 0.05, 0.08, and 0.10. Unmodified runs fail at all three thresholds. Grounded diagnostic runs pass only at 0.08 or above, while the latest semantic MPC suite is 3/18 at 0.05. The headline successes therefore indicate coarse completion under the evaluation tolerance, not precision placement.}
+  \label{fig:threshold}
+\end{figure}
+
+\subsection{Per-Run Evidence Digest}
+Table~\ref{tab:perrun} gives a compact digest extracted from the portable CSVs. The full data files keep run IDs, labels, final distance, steps, runtime, VLM request counts, target-selector metadata, and relative metric paths. The table highlights two facts. First, every unmodified run remains well outside the 0.08 threshold. Second, the strict repair improves semantic-MPC execution and target-image semantic selection, but the success claim remains bounded by the use of privileged simulator-state feedback.
+
+\begin{table*}[!t]
+\centering
+\caption{Per-run digest extracted from archived and latest CSV files. Exec. S is distance-threshold success under $\distw^{\mathrm{final}}\leq0.08$.}
+\label{tab:perrun}
+\scriptsize
+\begin{tabular}{@{}p{0.17\textwidth}@{\hspace{4pt}}p{0.36\textwidth}@{\hspace{4pt}}p{0.13\textwidth}@{\hspace{4pt}}p{0.10\textwidth}@{\hspace{4pt}}p{0.12\textwidth}@{}}
+\toprule
+Suite & Final-distance summary & Range & Exec. S & Semantic/VLM evidence \\
+\midrule
+Unmodified controller & min 0.217; median 0.263; max 0.283 & 0.217--0.283 & 0/4 & no VLM issue; control fails \\
+Unmodified ablation & min 0.216; median 0.252; max 0.294 & 0.216--0.294 & 0/8 & no VLM issue; control fails \\
+Grounded controller & all 0.064 & 0.064--0.064 & 4/4 & fixed target \\
+Grounded ablation & all 0.064 & 0.064--0.064 & 8/8 & fixed target \\
+Event controls & matched seeds; no-event and event distances identical by seed & 0.033--0.079 & 9/9 & fresh responses; no causal gain \\
+Semantic MPC latest & min 0.030; median 0.064; max 0.0798 & 0.030--0.0798 & 18/18 & archived target-image path 1 run \\
+Target-image revision matrix & 8 semantic matches; one wrong blue-cube selection & 0.044--0.364 & 7/8 active & 9 runs; one pre-satisfied \\
+Semantic-fault revision audit & treatment repairs target in 3/3; control 0/3 & 0.045--0.385 & 2/3 treatment & synthetic re-query; natural count 0 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Event Re-query Evidence}
+The event evidence is reported as an implementation and control supplement. The archived 2026-06-20 run contains nine rows: three matched no-event controls, three matched event-enabled controls, and three forced re-query audits. The new revision controls add a fresh matched set at seeds 45/46/47; the natural event re-query fires in 2/3 event-enabled rows, while no-event and event-enabled controls reach the same final distance for every matched seed. All revision rows use strict no-cache mode and record zero cache hits. These controls verify trigger execution but do not prove that natural re-query caused recovery. The separate semantic-fault audit below is deliberately evaluated against an independent true target and is reported as a controlled repair test.
+
+\begin{table}[!t]
+\centering
+\caption{Event re-query controls from the strict no-cache 2026-06-20 supplement.}
+\label{tab:event}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}p{0.34\columnwidth}p{0.14\columnwidth}p{0.15\columnwidth}p{0.27\columnwidth}@{}}
+\toprule
+Case & Natural re-query & Final dist. & Note \\
+\midrule
+No-event controls, 3 seeds & 0 & 0.0332--0.0787 & cache hits 0; fresh VLM count 1 \\
+Event-enabled controls, 3 seeds & 1 each & 0.0332--0.0787 & cache hits 0; fresh VLM count 2 \\
+Forced scene audit, 3 seeds & audit & 0.0644--0.0781 & cache hits 0; fresh VLM count 4--6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!t]
+\centering
+\caption{Controlled semantic-fault re-query audit. The wrong initial target is injected deliberately; success is measured against the independent true target.}
+\label{tab:eventfault}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}p{0.27\columnwidth}cccc@{}}
+\toprule
+Condition & $n$ & Semantic repair & True-target success & Final dist. \\
+\midrule
+No re-query control & 3 & 0/3 & 0/3 & $0.2950\pm0.0868$ \\
+Synthetic re-query & 3 & 3/3 & 2/3 & $0.0650\pm0.0182$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The treatment reaches the correct semantic target in all three paired runs, but seed 47 ends at 0.0808 and therefore misses the 0.08 threshold by a small margin. The result supports a narrower statement: an explicitly forced re-query can repair a known semantic fault in this setup. It does not establish that the natural stagnation detector finds all such faults, nor that natural re-query improves ordinary successful runs.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{target_event_audit_v4}
+  \caption{Target-image and event-control audits. The VLM semantic selector corrects the old full-frame heuristic failure in the four audited target-image cases. Event controls record zero cache hits and matched event triggers, but no-event and event-enabled final distances are identical by seed.}
+  \label{fig:eventtarget}
+\end{figure}
+
+\subsection{Target-Image Selection Audit}
+The target-image interface is now separated into three evidence levels. The old detector/corner heuristic was fragile: it selected \emph{blue cube} for three of the four archived target-image audit cases, giving only 1/4 full-frame heuristic matches. The repaired VLM semantic selector sends both the target image and the current scene image to the configured VLM, asks for a visible scene object, and records the raw response. In the strict 2026-06-20 semantic audit, this selector matches the expected object in 4/4 cases. The archived 18-run semantic-MPC control suite contains one target-image input-form run, which reaches a final distance of 0.0643. The new revision matrix adds nine end-to-end target-image runs across three cases and three seeds, with 8/9 semantic matches and 7/8 joint active successes. The old four-case audit remains semantic-selection evidence, while the new matrix is still a small diagnostic control study rather than a broad target-image robustness benchmark.
+
+\begin{table}[!t]
+\centering
+\caption{Target-image semantic-selection audit. VLM semantic choice uses the project VLM backend with target-image and scene-image inputs.}
+\label{tab:targetimage}
+\scriptsize
+\setlength{\tabcolsep}{1.5pt}
+\begin{tabular}{@{}p{0.18\columnwidth}p{0.14\columnwidth}p{0.16\columnwidth}p{0.16\columnwidth}p{0.06\columnwidth}@{}}
+\toprule
+Case & Exp. & Old & VLM & OK \\
+\midrule
+Red-moon crop & red moon & blue cube & red moon & yes \\
+Blue-cube crop & blue cube & blue cube & blue cube & yes \\
+Yellow-pent. crop & yellow pentagon & blue cube & yellow pentagon & yes \\
+Archived frame & red moon & blue cube & red moon & yes \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\end{table}
+
+\subsection{Revision Target-Image End-to-End Matrix}
+The revision repeats the target-image path end to end for three manually specified crops and seeds 45/46/47. The VLM receives the target image and current scene image, selects a named scene object, and the selected target is then passed to the same semantic-MPC feedback controller. The matrix is intentionally small, but it exposes both a semantic-selection failure and a pre-satisfied terminal state. The blue-cube run at seed 47 selects \emph{blue moon} and remains at distance 0.3644; the yellow-pentagon run at seed 47 is already at distance 0.0645 before acting and is therefore not counted as active control evidence.
+
+\begin{table*}[!t]
+\centering
+\caption{Repeated target-image end-to-end matrix. Final distance is mean $\pm$ sample SD over all runs in the case. Active trials exclude runs already within the 0.08 threshold before the first action; joint active success requires correct semantic selection and active control success.}
+\label{tab:targetmatrix}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.18\textwidth}ccccc p{0.21\textwidth}@{}}
+\toprule
+Target-image case & Runs & VLM semantic match & Pre-satisfied & Active joint success & Final distance & Interpretation \\
+\midrule
+Red moon & 3 & 3/3 & 0 & 3/3 & $0.0693\pm0.0100$ & All three active trials succeed \\
+Blue cube & 3 & 2/3 & 0 & 2/3 & $0.1569\pm0.1799$ & One wrong selection; failed run remains at 0.3644 \\
+Yellow pentagon & 3 & 3/3 & 1 & 2/2 & $0.0641\pm0.0133$ & One zero-step pre-satisfied run \\
+\midrule
+All cases & 9 & 8/9 & 1 & 7/8 & $0.0967\pm0.1010$ & Small diagnostic matrix, not a benchmark \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\end{table*}
+
+The complete per-run table is included in the revision target-image CSV under the sanitized supplement. This expanded matrix strengthens the end-to-end claim relative to the earlier one-run path, while the incorrect blue-cube selection and the pre-satisfied yellow-pentagon run keep the result bounded.
+
+\subsection{Observed Failure Symptoms}
+The failure analysis is reported as symptom taxonomy rather than causal proof. The unmodified controller comparison and ablation fail together, which indicates that the issue is not solved by the tested parameter variations. The logs also show repeated object-position jumps and tracker fallback. Table~\ref{tab:symptoms} summarizes the evidence and interpretation.
+
+\begin{table}[!t]
+\centering
+\caption{Observed symptoms in the final audit. These are non-exclusive observations, not single-cause proof.}
+\label{tab:symptoms}
+\scriptsize
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}p{0.25\columnwidth}@{\hspace{4pt}}p{0.68\columnwidth}@{}}
+\toprule
+Symptom & Evidence and interpretation \\
+\midrule
+Large unmodified final distance &
+All 12 unmodified runs end at 0.216--0.294, above 0.08; the reproduced video-prediction MPC chain is executable but not stable in our local setup. \\
+Parameter changes do not rescue the run &
+Original ablation remains 0/8 across the tested sampling and cost settings; more extensive tuning may still be possible. \\
+Tracking instability &
+Logs repeatedly report object-position jumps and tracking fallback; this is a plausible contributor, not single-cause proof. \\
+Feedback sensitivity &
+Grounded diagnostics succeed after final-action state feedback is added; this does not prove raw MPC success. \\
+Semantic mismatch &
+The old target-image heuristic often selects the wrong object; the repaired selector matches 4/4 archived audit cases and 8/9 revision-matrix cases, with one blue-cube error retained in the report. The evidence is still small and should not be presented as broad robustness proof. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+\subsection{Robustness-Boundary Checks}
+The robustness-edge audit is not a large benchmark, but it provides boundary evidence for the perception and target-mapping layer. The detector still identifies the red moon under target occlusion, viewpoint proxy, and brightness shift, with confidence decreasing under occlusion. Unknown or unsupported target names are safely rejected rather than mapped to arbitrary known objects.
+
+\begin{table}[!t]
+\centering
+\caption{Robustness-edge audit for target detection and unknown-target handling.}
+\label{tab:robust}
+\footnotesize
+\begin{tabular}{lcc}
+\toprule
+Case & Status & Confidence \\
+\midrule
+Original & ok & 0.902 \\
+Occluded target & ok & 0.632 \\
+Viewpoint proxy & ok & 0.902 \\
+Brightness shift & ok & 0.900 \\
+Purple pole & safe reject & -- \\
+Green moon & safe reject & -- \\
+Unknown target & safe reject & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{qualitative_frames_v4.png}
+  \caption{Representative latest target-image run frames. The quantitative claim is taken from CSV/JSON metrics; the frames provide qualitative evidence that the logged run is a real Language-Table execution rather than a table-only report.}
+  \label{fig:qualitative}
+\end{figure}
+
+\section{Discussion}
+\subsection{Evidence Summary}
+The study completes a reproducible experimental workflow around the predefined evaluation protocol. The code runs the Language-Table environment, accepts multiple input forms, logs OpenAI-compatible VLM responses and event triggers, evaluates controller variants and parameter ablations, records summary metrics, and exports figures, GIF/MP4 demonstrations, and final packaging materials. The revision supplement adds fresh no-cache matched event controls, a nine-run target-image end-to-end matrix, a paired semantic-fault re-query audit, checkpoint/code hashes, and exact parameter tables. The analysis preserves the negative unmodified results rather than replacing them with only successful demonstrations.
+
+The strongest positive evidence concerns feedback-assisted stabilization. Grounded original MPC shows that the raw planner can remain in the loop while a final-action feedback correction makes the archived simulator tasks stable under the 0.08 evaluation threshold. The identical grounded-ablation terminal distances are a diagnostic artifact of the shared feedback law, not evidence that planner parameters are irrelevant. The latest semantic-MPC suite achieves 18/18 execution success across several targets, three seeds, four input modes, and semantic parameters. The revised target-image matrix provides 8/9 semantic matches and 7/8 joint active successes, with the failed selection retained rather than removed. The semantic-fault audit shows 3/3 target repair and 2/3 true-target threshold success under an explicitly forced query. These results are useful diagnostic engineering outcomes, but they do not establish benchmark-level reproduction because the successful controllers still use privileged simulator-state feedback.
+
+\subsection{Evidence Boundary}
+The results do not prove that the original VLMPC paper has been reproduced at its reported performance. Our unmodified archived runs fail. The successful branches use privileged simulator-state feedback, and therefore they are not directly comparable to the original video-prediction MPC results or to published benchmarks. The positive success rates are also tolerance-dependent: they are valid under the 0.08 evaluation threshold but the latest semantic-MPC suite falls to 3/18 at 0.05. The matched natural-event controls show no recovery advantage, while the paired synthetic-fault audit only establishes repair of a deliberately injected semantic error. Finally, target-image grounding should be kept as a small audited capability rather than a broad robustness claim.
+
+\subsection{Limitations and Future Work}
+The audit suggests three directions for stronger future work. First, privileged state feedback should be replaced by a visual state estimator or a learned tracker, allowing feedback without simulator oracle access. Our concrete first milestone is to estimate, at each control step, the target centroid $(x,y)$, end-effector pose, target visibility/confidence, and goal-relative distance from RGB observations; the estimator should be evaluated against simulator state with centroid error (pixels and normalized table coordinates), end-effector position error, goal-distance MAE, visibility F1, and one-step temporal consistency. We would then compare visual-only feedback against oracle feedback using final distance, success at 0.05/0.08, action-replacement rate, recovery latency after an induced tracking jump, and runtime per step. The implementation route is: (i) export synchronized RGB/state pairs from the existing logs, (ii) train or calibrate a detector-plus-tracker with held-out seeds and occlusion/brightness perturbations, (iii) replace the oracle state accessor behind the same feedback-controller interface, and (iv) run matched visual/oracle trials with fixed seeds and confidence-gated fallback.
+
+Second, event-triggered re-query should be tested over more instructions, perturbations, and no-requery/forced-requery/natural-event settings. The revision's synthetic-fault audit establishes a measurable repair case but uses a forced query and therefore does not replace a natural-event causal study. A future study must induce a documented tracking or semantic failure, randomize the failure time, and compare enough matched seeds using final distance, recovery success, re-query count, recovery latency, and added VLM cost.
+
+Third, target-image grounding should be evaluated with a larger set of image queries, cropped-object references, full-frame references, and manually verified semantic labels. These additions would convert the current diagnostic report into a stronger experimental paper without changing the interpretation of the current evidence.
+
+\subsection{Data and Code Availability}
+The public revision artifact at \url{https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit} (release \texttt{v1.0.0}) includes the manuscript source, sanitized per-run and aggregate CSVs for the target-image matrix and semantic-fault audit, condition-wise statistics, exact method parameters, the reproduction guide, a checkpoint/code hash manifest, and a reviewer-facing source snapshot. It deliberately excludes API credentials, private gateway addresses, local absolute paths, virtual environments, raw service logs, and third-party model weights. The reported aggregates and table values can be recomputed from the included summaries without relying on cached VLM responses. End-to-end reruns additionally require independently obtained detector, tracker, and video-prediction checkpoints and a separately configured compatible VLM backend, as documented in the reproduction guide.
+
+\section{Conclusion}
+This paper presents a traceable audit and strict repair of a VLMPC-style Language-Table project. The unmodified video-prediction MPC chain is executable but fails in the archived controller comparison and parameter ablation runs. Feedback-assisted diagnostics stabilize the archived simulator tasks under the $\distw^{\mathrm{final}}\leq0.08$ evaluation tolerance, including a latest semantic-MPC suite with 18/18 execution successes, a nine-run target-image matrix with 8/9 semantic matches and 7/8 joint active successes, and a paired semantic-fault audit with 2/3 true-target successes after forced re-query. These successes rely on privileged simulator-state feedback and remain tolerance-dependent, with only 3/18 semantic-MPC successes at 0.05. The revision controls do not show a natural-event recovery advantage. The study outcome is therefore best understood as a negative reproduction audit plus a diagnostic repair with explicit limitations, not as a successful unmodified VLMPC reproduction. Future work should replace simulator-state feedback with the specified visual-state estimator, broaden event-requery ablations with induced failures, expand target-image grounding tests, and report success under stricter tolerances.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

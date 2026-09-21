@@ -1,0 +1,7 @@
+condition,seed,natural_requery,task_success,final_distance,cache_hits,wire_api
+no_event,45,0,True,0.0737877041,0,responses
+event_enabled,45,0,True,0.0737877041,0,responses
+no_event,46,0,True,0.0761523619,0,responses
+event_enabled,46,1,True,0.0761523619,0,responses
+no_event,47,0,True,0.0578180589,0,responses
+event_enabled,47,1,True,0.0578180589,0,responses

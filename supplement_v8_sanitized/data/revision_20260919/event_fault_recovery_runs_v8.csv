@@ -1,0 +1,7 @@
+case,seed,true_target,injected_fault_target,event_enabled,synthetic_requery,natural_event_requeries,final_controller_target,semantic_recovered,task_success,initial_true_target_distance,final_true_target_distance,num_steps
+no_requery,45,red moon,blue cube,False,False,0,blue cube,False,False,0.2150963545,0.2112889141,10
+with_synthetic_requery,45,red moon,blue cube,True,True,0,red moon,True,True,0.2150963545,0.0451269709,19
+no_requery,46,red moon,blue cube,False,False,0,blue cube,False,False,0.4355698526,0.3846678138,29
+with_synthetic_requery,46,red moon,blue cube,True,True,0,red moon,True,True,0.4355698526,0.0691730678,31
+no_requery,47,red moon,blue cube,False,False,0,blue cube,False,False,0.2891224325,0.2891217470,39
+with_synthetic_requery,47,red moon,blue cube,True,True,0,red moon,True,False,0.2891224325,0.0807727426,45

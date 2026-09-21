@@ -1,0 +1,19 @@
+﻿suite,threshold,success,success_rate
+Unmodified controller,0.05,0/4,0.0
+Unmodified controller,0.08,0/4,0.0
+Unmodified controller,0.1,0/4,0.0
+Unmodified ablation,0.05,0/8,0.0
+Unmodified ablation,0.08,0/8,0.0
+Unmodified ablation,0.1,0/8,0.0
+Grounded controller,0.05,0/4,0.0
+Grounded controller,0.08,4/4,1.0
+Grounded controller,0.1,4/4,1.0
+Grounded ablation,0.05,0/8,0.0
+Grounded ablation,0.08,8/8,1.0
+Grounded ablation,0.1,8/8,1.0
+Event re-query,0.05,0/1,0.0
+Event re-query,0.08,1/1,1.0
+Event re-query,0.1,1/1,1.0
+Semantic MPC,0.05,5/18,0.2777777777777778
+Semantic MPC,0.08,18/18,1.0
+Semantic MPC,0.1,18/18,1.0

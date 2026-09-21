@@ -1,0 +1,26 @@
+﻿module,parameter,value,source
+Environment,LanguageTable block mode,BLOCK_8,main.py
+Environment,reward,Block1ToCornerLocationReward,main.py
+Environment,control frequency,10.0 Hz,main.py
+Environment,seed,CLI default 42; semantic seeds 42/43/44,"main.py, metrics"
+Raw MPC,action dimension,2,main.py
+Raw MPC,prediction horizon,20,main.py
+Raw MPC,action clip,"[-0.08, 0.08] per component",vlmpc.py
+Raw MPC,correlated sampler beta,0.5,vlmpc.py
+Raw MPC,default sample budget / plan frequency,200 / 5,main.py
+Archived runs,controller/ablation budgets,"num_samples 5/10/15, plan_freq 1/2/3",summary.csv
+Detector,YOLO confidence threshold,0.5,vlmpc.py
+Structured cost,contact/approach/alignment/obstacle,0.35 / 0.15 / 18.0 / 24.0,vlmpc.py
+Structured cost,progress reward / non-progress penalty,1.2 / 12.0,vlmpc.py
+Structured cost,obstacle decay / min progress gain,42 px / 1.0,vlmpc.py
+Structured cost,close-range distance,135 px,vlmpc.py
+Structured cost,close contact/alignment/progress/non-progress,0.10 / 6.0 / 1.8 / 20.0,vlmpc.py
+Feedback,contact offset / clearance,0.06 / 0.12 world units,"main.py, vlmpc.py"
+Feedback,move step / push step,0.06 / 0.075,"main.py, vlmpc.py"
+Feedback,contact tolerance,0.018,vlmpc.py
+Feedback,push correction beta,0.45 in push phase,vlmpc.py
+Original event trigger,matched-control thresholds,"window 2, min_progress 25.0, min_step 3",event_requery_controls.csv
+Original event trigger,default thresholds,"window 3, min_progress 1.0, min_step 3",main.py
+Semantic event trigger,stagnation window / min progress,4 / 0.002,vlmpc.py
+Semantic event trigger,distance floor,1.5 x success distance,vlmpc.py
+Success,project success threshold,final world distance < 0.08,"main.py, metrics"

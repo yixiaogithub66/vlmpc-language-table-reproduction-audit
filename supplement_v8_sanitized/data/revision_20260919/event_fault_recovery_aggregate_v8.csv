@@ -1,0 +1,3 @@
+condition,n,semantic_recovered,task_success,final_distance_mean,final_distance_sample_sd,final_distance_min,final_distance_max
+no_requery,3,0,0,0.2950261583,0.0868401248,0.2112889141,0.3846678138
+with_synthetic_requery,3,3,2,0.0650242604,0.0181814387,0.0451269709,0.0807727426

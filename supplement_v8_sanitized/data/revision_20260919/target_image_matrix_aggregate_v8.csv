@@ -1,0 +1,5 @@
+case,n,semantic_correct,semantic_accuracy,pre_satisfied,active_trials,active_control_successes,active_control_success_rate,joint_active_successes,joint_active_success_rate,final_distance_mean,final_distance_sample_sd,steps_mean,steps_sample_sd
+red_moon,3,3,1.000000,0,3,3,1.000000,3,1.000000,0.0692527083,0.0099730290,18.666666667,11.503622618
+blue_cube,3,2,0.666667,0,3,2,0.666667,2,0.666667,0.1568585771,0.1799496642,18.000000000,9.848857802
+yellow_pentagon,3,3,1.000000,1,2,2,1.000000,2,1.000000,0.0641155839,0.0132725168,18.000000000,15.556349186
+overall,9,8,0.888889,1,8,7,0.875000,7,0.875000,0.0967422898,0.1010058454,18.250000000,10.010708552

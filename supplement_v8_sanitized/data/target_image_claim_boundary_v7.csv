@@ -1,0 +1,5 @@
+claim_level,cases,success,final_distance,what_is_supported,what_is_not_supported
+semantic_selection_audit,4,4/4,,"VLM target-image to scene-object semantic matching","not four end-to-end control trials"
+end_to_end_target_image_control,1,1/1,0.064265564,"one target-image input-form control path in the 18-row suite","not a target-image robustness benchmark"
+latest_semantic_control_suite,18,18/18,0.064118751,"bounded privileged-feedback execution under d_world_final <= 0.08","not unmodified VLMPC reproduction"
+
