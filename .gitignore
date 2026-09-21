@@ -25,6 +25,7 @@ main_extracted*.txt
 main_extracted_v8.txt
 rendered_pages*/
 *.zip
+tmp/
 .DS_Store
 Thumbs.db
 .idea/

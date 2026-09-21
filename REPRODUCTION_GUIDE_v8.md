@@ -1,6 +1,6 @@
 # Reproduction Guide v8
 
-This guide accompanies the revised manuscript and defines the artifact-to-table mapping, environment assumptions, and commands used for the revision experiments. The public artifact is available at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit (release v1.0.0). Commands use paths relative to the source snapshot and symbolic local paths for runtime assets that are not redistributed.
+This guide accompanies the revised manuscript and defines the artifact-to-table mapping, environment assumptions, and commands used for the revision experiments. The public artifact is available at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit (release v1.0.1). Commands use paths relative to the source snapshot and symbolic local paths for runtime assets that are not redistributed.
 
 ## Scope and Evidence Boundary
 
@@ -21,7 +21,7 @@ From this manuscript directory:
 
     main.tex                         revised manuscript
     refs.bib                         bibliography
-    data/                            archived local evidence files
+    data/                            authoritative and archived sanitized evidence
     supplement_v8_sanitized/data/    submission-safe derived summaries
     supplement_v8_sanitized/source/  source snapshot and environment template
     figures/                         manuscript figures
@@ -44,17 +44,21 @@ The paper records the model alias gpt-5.5 and responses wire protocol because th
 
 ## Static Checks
 
-Run from the experiment project root:
+Run the package-level consistency audit from the repository root:
 
-    & ".\.venv312\Scripts\python.exe" -m py_compile main.py vlmpc.py vlm_client.py stage_experiments\run_opening_report_complete.py stage_experiments\run_event_requery_controls.py stage_experiments\run_revision_target_image_matrix.py stage_experiments\run_revision_event_recovery_audit.py
-    & ".\.venv312\Scripts\python.exe" stage_experiments\run_revision_target_image_matrix.py --help
-    & ".\.venv312\Scripts\python.exe" stage_experiments\run_revision_event_recovery_audit.py --help
+    python scripts/verify_artifact.py
+
+Run source syntax checks from supplement_v8_sanitized/source:
+
+    python -m py_compile main.py vlmpc.py vlm_client.py stage_experiments\run_opening_report_complete.py stage_experiments\run_event_requery_controls.py stage_experiments\run_revision_target_image_matrix.py stage_experiments\run_revision_event_recovery_audit.py
+    python stage_experiments\run_revision_target_image_matrix.py --help
+    python stage_experiments\run_revision_event_recovery_audit.py --help
 
 ## Revision Target-Image Matrix
 
 The target-image driver uses the VLM selector explicitly and runs seeds 45, 46, and 47. Supply local checkpoint paths and the private endpoint through environment variables or command-line arguments outside the package:
 
-    & ".\.venv312\Scripts\python.exe" stage_experiments\run_revision_target_image_matrix.py --checkpoint_file "<PATH>\dmvfn_221.pkl" --det_path "<PATH>\detector_checkpoint.pt" --tracker_config "<PATH>\pysot-master\experiments\siamrpn_r50_l234_dwxcorr\config.yaml" --tracker_model "<PATH>\model.pth" --vlm_backend openai --openai_base_url $env:VLMPC_OPENAI_BASE_URL --openai_wire_api responses --openai_model gpt-5.5 --openai_api_key_env VLMPC_OPENAI_API_KEY --target_image_selector vlm --seeds 45 46 47 --success_distance_world 0.08 --continue_on_error
+    python stage_experiments\run_revision_target_image_matrix.py --checkpoint_file "<PATH>\dmvfn_221.pkl" --det_path "<PATH>\detector_checkpoint.pt" --tracker_config "<PATH>\pysot-master\experiments\siamrpn_r50_l234_dwxcorr\config.yaml" --tracker_model "<PATH>\model.pth" --vlm_backend openai --openai_base_url $env:VLMPC_OPENAI_BASE_URL --openai_wire_api responses --openai_model gpt-5.5 --openai_api_key_env VLMPC_OPENAI_API_KEY --target_image_selector vlm --seeds 45 46 47 --success_distance_world 0.08 --continue_on_error
 
 The submission-safe output is:
 
@@ -67,7 +71,7 @@ The aggregate uses sample standard deviation. A run with pre_satisfied=True is n
 
 This driver deliberately injects a wrong initial target and forces one explicitly labeled synthetic re-query at step 3 in the treatment. It is not a natural-event benchmark:
 
-    & ".\.venv312\Scripts\python.exe" stage_experiments\run_revision_event_recovery_audit.py --checkpoint_file "<PATH>\dmvfn_221.pkl" --det_path "<PATH>\detector_checkpoint.pt" --tracker_config "<PATH>\pysot-master\experiments\siamrpn_r50_l234_dwxcorr\config.yaml" --tracker_model "<PATH>\model.pth" --openai_base_url $env:VLMPC_OPENAI_BASE_URL --openai_wire_api responses --openai_model gpt-5.5 --openai_api_key_env VLMPC_OPENAI_API_KEY --true_target "red moon" --fault_target "blue cube" --force_step 3 --seeds 45 46 47 --continue_on_error
+    python stage_experiments\run_revision_event_recovery_audit.py --checkpoint_file "<PATH>\dmvfn_221.pkl" --det_path "<PATH>\detector_checkpoint.pt" --tracker_config "<PATH>\pysot-master\experiments\siamrpn_r50_l234_dwxcorr\config.yaml" --tracker_model "<PATH>\model.pth" --openai_base_url $env:VLMPC_OPENAI_BASE_URL --openai_wire_api responses --openai_model gpt-5.5 --openai_api_key_env VLMPC_OPENAI_API_KEY --true_target "red moon" --fault_target "blue cube" --force_step 3 --seeds 45 46 47 --continue_on_error
 
 The submission-safe output is:
 
@@ -88,17 +92,18 @@ The archived nine-row control file is retained for provenance. The revision cont
 
 | Paper claim | Submission-safe artifact |
 | --- | --- |
-| Unmodified 0/4 and 0/8 | data/historical_unmodified_grounded_per_run_results.csv and data/historical_threshold_sensitivity.csv |
-| 18-row semantic suite | supplement_v8_sanitized/data/condition_statistics_v7.csv |
+| Unmodified 0/4 and 0/8 | data/archived_nonsemantic_branch_runs_v8.csv and data/threshold_sensitivity_v8.csv |
+| Authoritative 18-row Semantic MPC suite | data/semantic_mpc_authoritative_runs_v8.csv |
+| Semantic MPC mean, sample SD, and threshold counts | supplement_v8_sanitized/data/semantic_mpc_condition_statistics_v8.csv and data/threshold_sensitivity_v8.csv |
 | 23/23 grounded action replacement | supplement_v8_sanitized/data/grounded_action_replacement_summary_v7.csv |
 | Archived 4/4 target-image semantic audit | supplement_v8_sanitized/data/target_image_claim_boundary_v7.csv |
 | Revision target-image matrix | supplement_v8_sanitized/data/revision_20260919/target_image_matrix_runs_v8.csv and target_image_matrix_aggregate_v8.csv |
 | Revision semantic-fault audit | supplement_v8_sanitized/data/revision_20260919/event_fault_recovery_runs_v8.csv and event_fault_recovery_aggregate_v8.csv |
 | Revision natural-event controls | supplement_v8_sanitized/data/revision_20260919/event_matched_controls_revision_v8.csv |
-| Parameters and file hashes | data/method_parameter_table_v2.csv, data/checkpoint_and_code_manifest_v4.csv, and supplement_v8_sanitized/data/code_manifest_v8.csv |
+| Parameters and file hashes | data/method_parameter_table_v2.csv, data/runtime_asset_manifest_v8.csv, supplement_v8_sanitized/data/code_manifest_v8.csv, and supplement_v8_sanitized/SOURCE_SNAPSHOT_PROVENANCE_v8.md |
 
-All means and standard deviations in the revised tables use the sample SD convention. The older latest_semantic_suite_summary.csv retains its historical population-SD field and is not authoritative for the v8 revision tables.
+All means and standard deviations in the revised tables use the sample SD convention. Superseded Semantic MPC rows and the conflicting 5/18 threshold table are excluded from v1.0.1. The package-level verification script fails if those files reappear.
 
 ## Reproducibility Limits
 
-The current evidence is a local simulator audit, not a real-robot or broad-task benchmark. The semantic and event branches depend on an external VLM service, and the required model weights are not redistributed in this package. The manuscript reports exact seeds, thresholds, action counts, parameter values, cache status, and file hashes while keeping the availability statement honest.
+The current evidence is a local simulator audit, not a real-robot or broad-task benchmark. The semantic and event branches depend on an external VLM service, and the required model weights are not redistributed in this package. The included summaries are sufficient to audit the reported aggregates. A complete rerun requires independently obtained runtime assets and a separately configured compatible VLM backend. The manuscript reports exact seeds, thresholds, action counts, parameter values, cache status, and file hashes while keeping the availability statement honest.

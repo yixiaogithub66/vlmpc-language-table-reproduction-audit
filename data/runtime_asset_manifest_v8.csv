@@ -1,0 +1,5 @@
+asset,sha256_prefix12,bytes,redistributed,role
+dmvfn_221.pkl,b5ddb82a4ea0,14397893,no,video-prediction checkpoint
+detector_checkpoint.pt,b9e0757ad8da,14379709,no,object-detector checkpoint
+model.pth,366c7ea4bfed,25037819,no,tracker checkpoint
+config.yaml,40ed278d4b4d,547,no,tracker configuration

@@ -1,0 +1,6 @@
+condition,n,mean_final_world_distance,sample_sd_final_world_distance,success_005,success_008
+input_forms,4,0.066312,0.004092,0/4,4/4
+multi_seed,3,0.058707,0.023266,1/3,3/3
+multi_target,8,0.067798,0.016732,1/8,8/8
+semantic_ablation,3,0.056795,0.013584,1/3,3/3
+all_authoritative_runs,18,0.064119,0.015025,3/18,18/18

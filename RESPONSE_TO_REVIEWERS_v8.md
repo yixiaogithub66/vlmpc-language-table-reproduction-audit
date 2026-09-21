@@ -1,77 +1,139 @@
-# Response to Reviewers v8
+# Response to the Co-chair and Reviewers
 
-We thank the chair and reviewers for identifying weaknesses in reproducibility, controller description, statistical reporting, and claim boundaries. We revised the manuscript around the archived evidence and added two focused experiments using the same VLM configuration and strict no-cache execution. We do not convert privileged-feedback diagnostics into claims about successful unmodified VLMPC reproduction.
+We thank the co-chair and three reviewers for their careful assessment. We revised the manuscript and public artifact around four principles: preserve the unsuccessful unmodified reproduction, separate privileged-feedback diagnostics from original VLMPC evidence, make every reported number traceable to one authoritative file, and state clearly which requested experiments remain future work. The corrected public artifact is available at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit, release v1.0.1.
 
 ## Co-chair
 
-### Comment: Correct language and make the evidence boundary explicit.
+### Comment E.1
 
-**Response:** We proofread the manuscript, repaired incomplete or compressed sentences, unified the primary success definition as $d_{\mathrm{world}}^{\mathrm{final}}\leq0.08$, and revised the Abstract, Introduction, Evaluation Setup, Results, Discussion, and Conclusion. The manuscript now states directly that the unmodified video-prediction MPC branch is 0/4 and 0/8, whereas the positive execution results come from privileged-feedback diagnostic branches. The new target-image and semantic-fault results are also labeled as diagnostic evidence with their failure cases retained.
+The manuscript still contains typos and grammatical issues requiring a careful proofread. The authors should address the issues one by one and provide point-by-point responses.
 
-**Location:** main.tex, Abstract, Introduction, Sec. III, Sec. V, and Conclusion.
+**Response:** We performed a complete language and consistency pass, repaired incomplete or compressed sentences, checked all cross-references, and unified the reported statistics. This letter now answers every actionable editor and reviewer point separately. The final LaTeX build has no undefined citations or references, and the public artifact includes an automated consistency check.
+
+**Location:** Throughout the manuscript; public artifact, scripts/verify_artifact.py.
+
+### Comment E.2
+
+The distinction between privileged-feedback-assisted success and genuine original VLMPC reproduction should be highlighted more prominently in the abstract and introduction.
+
+**Response:** We revised the Abstract and Introduction to state the negative unmodified results first, 0/4 controller-comparison successes and 0/8 ablation successes. We identify every positive controller result as a privileged-feedback diagnostic result. Table II records action authority and state access for every branch, and Table IV labels the positive branches as feedback-assisted diagnostics.
+
+**Location:** Abstract, p. 1; Introduction, pp. 1-2; Table II, p. 5; Table IV, p. 6; Discussion, pp. 7-8; Conclusion, pp. 8-9.
 
 ## Reviewer 1
 
-### Comment: Improve reproducibility and provide an availability statement.
+### Comment R1.1
 
-**Response:** We updated the availability statement and v8 reproduction guide and created the public artifact repository at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit (release v1.0.0). It includes sanitized per-run and aggregate CSVs for the nine-run target-image matrix and paired semantic-fault audit, a source snapshot containing the two new audit drivers, exact parameter references, and updated code hashes. The guide maps every headline result to a submission-safe artifact and command. API credentials, private gateway addresses, absolute local paths, virtual environments, raw service logs, and third-party model weights are excluded. The reported aggregates can be audited from the included summaries; end-to-end reruns require independently obtained checkpoints and a separately configured compatible VLM backend.
+Since traceability is a central contribution, please provide a clear availability statement and an accessible repository or supplementary-package reference. A short guide linking the main tables to the corresponding configurations, logs, and execution commands would make the reported audit easier to reproduce.
 
-**Location:** main.tex, Data and Code Availability; REPRODUCTION_GUIDE_v8.md; DATA_CODE_AVAILABILITY_v8.md; supplement_v8_sanitized/.
+**Response:** We added a public repository, a fixed v1.0.1 release, a Data and Code Availability subsection, a reproduction guide, and an experiment-results index. The artifact contains one authoritative 18-run Semantic MPC file, regenerated threshold and condition statistics, sanitized revision CSVs, experiment drivers, exact method parameters, separate runtime-asset and source-snapshot manifests, and an automated verification script. Credentials, private endpoints, machine-local paths, raw service logs, and third-party model weights are excluded. End-to-end reruns therefore require independently obtained checkpoints and a separately configured compatible VLM backend.
 
-### Comment: Clarify the role of MPC in each branch.
+**Location:** Data and Code Availability, p. 8; REPRODUCTION_GUIDE_v8.md; EXPERIMENT_RESULTS_INDEX_v8.md; DATA_CODE_AVAILABILITY_v8.md; scripts/verify_artifact.py.
 
-**Response:** Table branchroles distinguishes: (i) unmodified VLMPC, where candidate video-prediction rollouts are cost-ranked and the raw action is executed; (ii) grounded original MPC, where raw calls are retained for traceability but privileged feedback determines execution; (iii) semantic MPC, where the outer loop is receding-horizon and logged but the final semantic push has zero active raw-sampling budget; and (iv) event controls, where query timing is tested rather than a new low-level optimizer being claimed.
+### Comment R1.2
 
-**Location:** main.tex, Sec. III, Table branchroles.
+Please clarify the role of MPC in each diagnostic branch, particularly Semantic MPC, which is described as using state-feedback pushing without active raw action sampling.
 
-### Comment: Report how often the grounded controller modifies or replaces raw planner actions.
+**Response:** We now distinguish four branches. Unmodified VLMPC ranks video-prediction rollouts and executes the first raw action. Grounded original MPC retains the raw planner for traceability, but privileged feedback replaces its action at execution. Semantic MPC retains receding-horizon execution and logging but uses zero active raw video-prediction sampling, so the state-feedback push law determines the action. The event-control branch changes VLM query timing rather than the low-level optimizer.
 
-**Response:** We report the exact log-derived result: all 12 grounded runs contain 23 raw planner actions and 23 feedback overrides, so the executed-action replacement rate is 23/23 (100%) in every run. The raw planner remains in the loop for traceability and comparison, but it is not the executed-action authority in that branch.
+**Location:** Method, pp. 3-4; Table II, p. 5.
 
-**Location:** main.tex, Sec. III and Table branchroles; supplement_v8_sanitized/data/grounded_action_replacement_summary_v7.csv.
+### Comment R1.3
 
-### Comment: Add more target-image cases and repeated matched runs.
+Reporting how often the grounded controller modifies or replaces the raw planner action would help readers understand the planner's contribution.
 
-**Response:** We performed a focused end-to-end matrix with three target-image cases (red moon, blue cube, and yellow pentagon) and seeds 45, 46, and 47, for nine runs under the same model and strict no-cache policy. VLM semantic selection is correct in 8/9 runs. We report active control separately: one yellow-pentagon run was already within the terminal threshold before acting, so it is excluded from the active denominator; among the eight active trials, joint semantic-plus-control success is 7/8. The blue-cube seed-47 semantic error is retained and ends at distance 0.3644. We therefore strengthen the previous one-run end-to-end evidence without presenting the small matrix as a broad visual benchmark.
+**Response:** We report the exact log-derived action authority. Every one of the 12 grounded runs contains 23 raw planner actions and 23 feedback overrides. The executed-action replacement rate is therefore 23/23, or 100 percent, in every run. The raw planner remains present for traceability, but it does not control the executed action in this branch.
 
-**Location:** main.tex, Sec. V, Revision Target-Image End-to-End Matrix, Table targetmatrix; supplement_v8_sanitized/data/revision_20260919/target_image_matrix_runs_v8.csv; target_image_matrix_aggregate_v8.csv.
+**Location:** Grounded Original MPC, p. 3; Table II, p. 5; supplement_v8_sanitized/data/grounded_action_replacement_summary_v7.csv.
+
+### Comment R1.4
+
+Repeated explanations of the same methodological limitations could also be consolidated.
+
+**Response:** We consolidated the detailed branch-responsibility explanation in Table II and removed two repeated Method statements that restated the same grounded-controller limitation. Short statements remain in the Abstract, Results, and Conclusion because they serve different functions: framing the claim, interpreting the evidence, and stating the final boundary.
+
+**Location:** Method, pp. 3-4; Table II, p. 5; Abstract, p. 1; Conclusion, pp. 8-9.
+
+### Comment R1.5
+
+Please consider adding a few more target-image cases and repeated runs under matched task settings, with variability reported for each condition.
+
+**Response:** We added a nine-run end-to-end matrix using red moon, blue cube, and yellow pentagon target images with seeds 45, 46, and 47. Semantic selection is correct in 8/9 runs. One yellow-pentagon run is already within the terminal threshold before acting and is separated from the active denominator. Joint semantic-plus-control success is 7/8 among active trials. Table X reports mean and sample SD for each image condition and retains the blue-cube seed-47 failure.
+
+**Location:** Revision Target-Image End-to-End Matrix, pp. 7-8; Table X, p. 8; supplement_v8_sanitized/data/revision_20260919/target_image_matrix_runs_v8.csv and target_image_matrix_aggregate_v8.csv.
 
 ## Reviewer 2
 
-### Comment: Fix typos, incomplete grammar, and inconsistent success rates.
+### Comment R2.1
 
-**Response:** We performed another full pass over the manuscript and made the threshold convention explicit. Every primary success count uses the same $d_{\mathrm{world}}^{\mathrm{final}}\leq0.08$ rule. We now distinguish terminal threshold success, active control success, joint active success, and pre-satisfied runs. The stricter 0.05 audit remains 3/18 for the archived semantic suite, while the unmodified branches remain 0/4 and 0/8.
+Some typos and incomplete grammatical sentences remain and a careful proofread is needed.
 
-**Location:** Abstract, Evaluation Setup, diagnostic tables, target-image matrix, Discussion, and Conclusion.
+**Response:** We proofread the full manuscript, repaired incomplete sentences, standardized terminology, and checked the compiled nine-page PDF. The final build contains no undefined citations or references.
 
-### Comment: Few seeds and zero variance weaken the results.
+**Location:** Throughout the manuscript.
 
-**Response:** We retain the archived seed set 42/43/44 and add independent revision runs at seeds 45/46/47 for the target-image matrix and semantic-fault audit. Means and sample SDs are reported in the new aggregate files. The grounded zero variance remains visible and is explained as a consequence of the shared terminal feedback law and identical 23-step execution, not as evidence that raw planner parameters are irrelevant.
+### Comment R2.2
 
-**Location:** main.tex, Evaluation Setup, Table variance, Table targetmatrix, Table eventfault; supplement_v8_sanitized/data/revision_20260919/.
+The reported success rates are inconsistent across the manuscript; please unify the numbers.
 
-### Comment: Add a real robot or broader task evaluation.
+**Response:** We use final world distance at or below 0.08 as the primary success rule throughout. The final Semantic MPC suite has one authoritative 18-run source. It gives mean final distance 0.064119, sample SD 0.015025, 3/18 successes at 0.05, and 18/18 at 0.08. We removed superseded Semantic MPC rows and the conflicting 5/18 table from the public artifact, regenerated the threshold table, and added a verification script that fails if the conflict reappears.
 
-**Response:** We agree that this would strengthen the study, but no real-robot or broad-task experiment was available for this revision. The manuscript explicitly identifies the current package as a local Language-Table simulator audit and lists real-robot and broader-task evaluation as future work. We do not claim those experiments were performed.
+**Location:** Abstract, p. 1; Evaluation Setup, p. 2; Tables IV-V, p. 6; Discussion, pp. 7-8; Conclusion, pp. 8-9; data/semantic_mpc_authoritative_runs_v8.csv; data/threshold_sensitivity_v8.csv.
 
-### Comment: Add deeper root-cause ablations.
+### Comment R2.3
 
-**Response:** We retain the symptom taxonomy and narrow its interpretation: tracker jumps, parameter non-rescue, and feedback sensitivity are observations, not single-cause proof. The branch table makes the strongest actionable mechanism visible: in the grounded diagnostic branch, feedback replaces 100% of raw actions. The new blue-cube target-image failure is also retained as direct evidence that semantic errors can dominate the control outcome.
+The runs use very few seeds and some results show zero variance; reporting multiple seeds with mean plus or minus standard deviation would be more convincing.
 
-### Comment: Redesign event re-query so its benefit is measurable.
+**Response:** We retain seeds 42, 43, and 44 for the archived seed subset and add seeds 45, 46, and 47 for the target-image and semantic-fault experiments. Table V reports sample SD by Semantic MPC condition, and Table X reports sample SD by target-image condition. The grounded zero variance remains visible and is explained as an effect of the shared terminal feedback law and identical 23-step action replacement, not as evidence that raw-planner parameters are irrelevant.
 
-**Response:** We added a paired controlled semantic-fault audit. For each of seeds 45/46/47, the correct red-moon target is deliberately replaced by blue cube. The no-requery control keeps the wrong target; the treatment forces one explicitly labeled synthetic re-query at step 3 and is evaluated against the independent true target. Semantic repair is 3/3 and true-target threshold success is 2/3, versus 0/3 in the control. The treatment seed 47 ends at 0.0808, so it is not counted as a success. This experiment demonstrates repair of a known semantic corruption, but it does not establish natural stagnation-detector sensitivity or causal benefit in ordinary successful runs. Fresh matched natural-event controls still have identical no-event/event final distances by seed. We therefore report the stronger controlled result with its boundary instead of claiming an unproven natural-event improvement.
+**Location:** Tables IV-V, p. 6; Table X, p. 8; Feedback-Assisted Diagnostic Results, pp. 4-6.
 
-**Location:** main.tex, Sec. III, Sec. V, Table eventfault, and Limitations and Future Work; supplement_v8_sanitized/data/revision_20260919/event_fault_recovery_runs_v8.csv; event_fault_recovery_aggregate_v8.csv.
+### Comment R2.4
+
+The paper could be strengthened by validating the controllers on a real robot and testing a broader set of tasks and instructions, since all results come from simulation with privileged feedback.
+
+**Response:** We agree that real-robot and broader-task validation would strengthen external validity. These experiments were not available for this revision, so we do not claim they were performed. We identify the current study as a local Language-Table simulator audit and list real-robot, broader-task, and visual-only feedback evaluation as future work.
+
+**Location:** Evidence Boundary and Limitations and Future Work, p. 8.
+
+### Comment R2.5
+
+The analysis could go deeper by isolating the root causes through targeted ablations.
+
+**Response:** We narrowed the causal language rather than presenting symptoms as isolated root causes. Table XI labels tracker jumps, parameter non-rescue, and feedback sensitivity as non-exclusive observations. The strongest mechanism-level result is reported directly: privileged feedback replaces 100 percent of grounded raw actions. The retained blue-cube target-image failure further shows that a semantic selection error can dominate the control outcome. A complete root-cause isolation study remains future work.
+
+**Location:** Table II, p. 5; Observed Failure Symptoms and Table XI, p. 8; Evidence Boundary, p. 8.
+
+### Comment R2.6
+
+The re-query experiment could be redesigned so its benefit is actually measurable.
+
+**Response:** We added a paired controlled semantic-fault audit. For each of seeds 45, 46, and 47, the correct red-moon target is deliberately replaced by blue cube. The control retains the wrong target. The treatment performs one explicitly labeled forced re-query at step 3 and is evaluated against the independently recorded true target. The treatment repairs the semantic target in 3/3 runs and reaches the true-target threshold in 2/3, versus 0/3 controls. Seed 47 ends at 0.0808 and is correctly counted as a failure. This establishes repair under an injected semantic fault, but not causal benefit for the natural stagnation trigger. Fresh matched natural-event controls still have identical final distances by seed.
+
+**Location:** Event-Triggered VLM Re-query, p. 4; Tables VII-VIII, p. 6; Limitations and Future Work, p. 8; supplement_v8_sanitized/data/revision_20260919/event_fault_recovery_runs_v8.csv.
 
 ## Reviewer 3
 
-### Comment: Distinguish privileged feedback from genuine original VLMPC more prominently.
+### Comment R3.1
 
-**Response:** The distinction is stated in the Abstract, Introduction, branch-responsibility table, diagnostic-result caption, Discussion, and Conclusion. The headline positive numbers are labeled execution or semantic-selection results for diagnostic branches, never as successful unmodified VLMPC reproduction.
+The distinction between privileged feedback assisted success and genuine original VLMPC reproduction should be highlighted more prominently in abstract and introduction, to prevent readers from misinterpreting diagnostic results as original method reproduction.
 
-### Comment: Give a concrete visual-state-estimator roadmap.
+**Response:** We state the unmodified failures before the diagnostic successes in both the Abstract and Introduction. We identify the positive branches as privileged-feedback diagnostics, report action authority and state access in Table II, and repeat the evidence boundary when interpreting the results. We never present the 4/4, 8/8, or 18/18 diagnostic numbers as successful unmodified VLMPC reproduction.
 
-**Response:** We retain and sharpen the measurable roadmap. The first estimator milestone predicts target centroid, end-effector pose, visibility/confidence, and goal-relative distance from RGB. Planned metrics are centroid error in pixels and normalized table coordinates, end-effector error, goal-distance MAE, visibility F1, and one-step temporal consistency. Matched visual/oracle trials will report final distance, success at 0.05/0.08, action-replacement rate, recovery latency after induced tracking jumps, and per-step runtime. The implementation path is synchronized RGB/state export, detector-plus-tracker calibration with held-out seeds and perturbations, interface replacement, then confidence-gated matched evaluation.
+**Location:** Abstract, p. 1; Introduction, pp. 1-2; Table II, p. 5; Table IV, p. 6; Discussion, pp. 7-8; Conclusion, pp. 8-9.
 
-**Location:** main.tex, Limitations and Future Work.
+### Comment R3.2
+
+Specify concrete metrics and implementation roadmap for future visual-state-estimator research.
+
+**Response:** We specify a first visual-state-estimator milestone that predicts target centroid, end-effector pose, target visibility or confidence, and goal-relative distance from RGB observations. Planned estimator metrics are centroid error in pixels and normalized table coordinates, end-effector position error, goal-distance mean absolute error, visibility F1, and one-step temporal consistency. Matched visual-only and oracle-feedback trials will report final distance, success at 0.05 and 0.08, action-replacement rate, recovery latency after an induced tracking jump, and runtime per step. The implementation path is synchronized RGB/state export, detector-plus-tracker calibration with held-out seeds and perturbations, interface replacement, and confidence-gated matched evaluation.
+
+**Location:** Limitations and Future Work, p. 8.
+
+### Comment R3.3
+
+Check out errors in the manuscript.
+
+**Response:** We conducted a manuscript-wide language, numerical, cross-reference, and artifact-consistency audit. We corrected grammar, unified the success statistics, removed inaccessible package paths and an empty CSV, separated executed-source from public-snapshot hashes, and verified the compiled PDF. The final LaTeX build has no undefined citations or references, and python scripts/verify_artifact.py checks the public numeric and hash claims.
+
+**Location:** Throughout the manuscript; Data and Code Availability, p. 8; public artifact, scripts/verify_artifact.py and CHANGELOG.md.

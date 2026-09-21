@@ -4,6 +4,8 @@ This repository is the public revision artifact for Traceable Reproduction Audit
 
 The artifact preserves the negative unmodified-reproduction results, the privileged-feedback diagnostic results, and the focused target-image and semantic-fault experiments without presenting those branches as equivalent evidence.
 
+Use release v1.0.1. Release v1.0.0 is retained for provenance but is superseded because it included conflicting historical Semantic MPC rows and an ambiguous source-snapshot hash.
+
 ## Start Here
 
 - main.pdf: compiled manuscript.
@@ -11,6 +13,7 @@ The artifact preserves the negative unmodified-reproduction results, the privile
 - RESPONSE_TO_REVIEWERS_v8.md: point-by-point response.
 - REPRODUCTION_GUIDE_v8.md: commands, environment assumptions, and artifact mapping.
 - EXPERIMENT_RESULTS_INDEX_v8.md: result-file index.
+- data/semantic_mpc_authoritative_runs_v8.csv: sole authoritative final 18-run Semantic MPC dataset.
 - supplement_v8_sanitized/data/revision_20260919/: new per-run and aggregate evidence.
 - supplement_v8_sanitized/source/: reviewer-facing source snapshot.
 
@@ -19,6 +22,7 @@ The artifact preserves the negative unmodified-reproduction results, the privile
 - Unmodified controller comparison: 0/4.
 - Unmodified parameter ablation: 0/8.
 - Grounded diagnostic branch: 23/23 raw actions replaced in every run.
+- Semantic MPC diagnostic suite: 18/18 at 0.08 and 3/18 at 0.05, with final distance 0.064119 +/- 0.015025 sample SD.
 - Target-image matrix: 8/9 semantic matches and 7/8 joint active successes.
 - Forced semantic-fault audit: 3/3 semantic repairs and 2/3 true-target successes.
 - Natural-event controls: matched final distances; no causal recovery benefit is claimed.
@@ -29,9 +33,17 @@ The included sanitized CSVs are sufficient to recompute and audit the manuscript
 
 The repository intentionally excludes API credentials, private gateway addresses, local absolute paths, virtual environments, raw service logs, and third-party model weights. Do not commit a local .env file. Expected checkpoint hashes and configuration paths are recorded in the manifests.
 
+## Verify the Artifact
+
+Run from the repository root:
+
+    python scripts/verify_artifact.py
+
+The script recomputes the headline statistics, checks the target-image and semantic-fault counts, validates every public source-snapshot hash, rejects superseded conflicting files, and detects zero-byte data or source artifacts.
+
 ## Citation
 
-Citation metadata is provided in CITATION.cff. Use release v1.0.0 when referring to the exact revision artifact.
+Citation metadata is provided in CITATION.cff. Use release v1.0.1 when referring to the exact revision artifact.
 
 ## Licensing Note
 
