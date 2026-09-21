@@ -98,6 +98,7 @@ legacy_files = [
     "data/historical_unmodified_grounded_per_run_results.csv",
     "data/latest_semantic_suite_summary.csv",
     "data/opening_report_complete_summary_20260620_173545.csv",
+    "data/historical_extracted_results_summary.csv",
     "data/checkpoint_and_code_manifest_v4.csv",
     "supplement_v8_sanitized/data/condition_statistics_v7.csv",
     "supplement_v8_sanitized/data/event_requery_controls_20260620_180646.csv",

@@ -2,7 +2,7 @@
 
 This is the clean manuscript package for the current revision. It contains the compiled paper, source needed for a local LaTeX build, the point-by-point response, the reproduction guide, and sanitized derived evidence.
 
-Public artifact: https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit (release v1.0.2).
+Public artifact: https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit (release v1.0.3).
 
 The raw experiment logs are intentionally outside this bundle. The supplement source and CSVs omit API keys, gateway addresses, absolute local paths, raw prompts, and model weights.
 

@@ -1,10 +1,18 @@
 # Changelog
 
+## v1.0.3
+
+- Removed the remaining superseded aggregate summary that reported a different 18-run mean.
+- Extended the verification script to reject that file and preserve one authoritative Semantic MPC dataset.
+- Retained the v1.0.2 line-ending normalization and archive-extraction verification.
+
 ## v1.0.2
 
 - Enforced LF line endings for public Python sources through .gitattributes.
 - Verified that source hashes match files after Git archive extraction, not only the local Windows working tree.
 - Retained all v1.0.1 evidence, response-letter, and attachment-cleanup corrections.
+
+This release is retained for provenance but superseded by v1.0.3 because one old aggregate summary with a different 18-run mean remained in the package.
 
 ## v1.0.1
 

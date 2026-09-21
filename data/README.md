@@ -1,6 +1,6 @@
 # Evidence Data Map
 
-The v1.0.2 artifact uses one authoritative source for each reported result family.
+The v1.0.3 artifact uses one authoritative source for each reported result family.
 
 ## Authoritative files
 
@@ -12,4 +12,4 @@ The v1.0.2 artifact uses one authoritative source for each reported result famil
 
 The authoritative Semantic MPC values are n=18, mean final distance 0.064119, sample SD 0.015025, 3/18 successes at 0.05, and 18/18 successes at 0.08.
 
-Superseded Semantic MPC rows and their 5/18 threshold table are not included in this release. Raw logs are not redistributed because they contain machine-local runtime metadata; sanitized run identifiers are retained where needed for provenance.
+Superseded Semantic MPC rows, the old 5/18 threshold table, and the old aggregate summary with mean 0.059996 are not included in this release. Raw logs are not redistributed because they contain machine-local runtime metadata; sanitized run identifiers are retained where needed for provenance.

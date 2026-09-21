@@ -1,6 +1,6 @@
 # Experiment Results Index v8
 
-This index maps every manuscript result family to a file that exists in the public v1.0.2 artifact. Raw service logs are not redistributed because they contain machine-local runtime metadata.
+This index maps every manuscript result family to a file that exists in the public v1.0.3 artifact. Raw service logs are not redistributed because they contain machine-local runtime metadata.
 
 ## Authoritative Evidence
 
@@ -10,7 +10,7 @@ This index maps every manuscript result family to a file that exists in the publ
 | Unified threshold sensitivity | data/threshold_sensitivity_v8.csv | One table regenerated from the authoritative Semantic MPC runs and archived nonsemantic branches |
 | Unmodified and grounded branches | data/archived_nonsemantic_branch_runs_v8.csv | Unmodified 0/4 and 0/8; grounded 4/4 and 8/8 at 0.08 |
 | Semantic condition variability | supplement_v8_sanitized/data/semantic_mpc_condition_statistics_v8.csv | Sample-SD summaries by input form, target, seed, and ablation |
-| Grounded action authority | supplement_v8_sanitized/data/grounded_action_replacement_summary_v7.csv | 23/23 raw actions replaced in every grounded run |
+| Grounded action authority | supplement_v8_sanitized/data/grounded_action_replacement_summary_v8.csv | 23/23 raw actions replaced in every grounded run |
 | Target-image matrix | supplement_v8_sanitized/data/revision_20260919/target_image_matrix_runs_v8.csv | 8/9 semantic matches; 7/8 joint active successes; one pre-satisfied run |
 | Controlled semantic-fault audit | supplement_v8_sanitized/data/revision_20260919/event_fault_recovery_runs_v8.csv | 3/3 forced repairs; 2/3 treatment successes; 0/3 control successes |
 | Fresh matched natural-event controls | supplement_v8_sanitized/data/revision_20260919/event_matched_controls_revision_v8.csv | Trigger in 2/3 event-enabled runs; matched final distances unchanged |

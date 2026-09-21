@@ -1,6 +1,6 @@
 # Reproduction Guide v8
 
-This guide accompanies the revised manuscript and defines the artifact-to-table mapping, environment assumptions, and commands used for the revision experiments. The public artifact is available at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit (release v1.0.2). Commands use paths relative to the source snapshot and symbolic local paths for runtime assets that are not redistributed.
+This guide accompanies the revised manuscript and defines the artifact-to-table mapping, environment assumptions, and commands used for the revision experiments. The public artifact is available at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit (release v1.0.3). Commands use paths relative to the source snapshot and symbolic local paths for runtime assets that are not redistributed.
 
 ## Scope and Evidence Boundary
 
@@ -95,14 +95,14 @@ The archived nine-row control file is retained for provenance. The revision cont
 | Unmodified 0/4 and 0/8 | data/archived_nonsemantic_branch_runs_v8.csv and data/threshold_sensitivity_v8.csv |
 | Authoritative 18-row Semantic MPC suite | data/semantic_mpc_authoritative_runs_v8.csv |
 | Semantic MPC mean, sample SD, and threshold counts | supplement_v8_sanitized/data/semantic_mpc_condition_statistics_v8.csv and data/threshold_sensitivity_v8.csv |
-| 23/23 grounded action replacement | supplement_v8_sanitized/data/grounded_action_replacement_summary_v7.csv |
-| Archived 4/4 target-image semantic audit | supplement_v8_sanitized/data/target_image_claim_boundary_v7.csv |
+| 23/23 grounded action replacement | supplement_v8_sanitized/data/grounded_action_replacement_summary_v8.csv |
+| Archived 4/4 target-image semantic audit | supplement_v8_sanitized/data/target_image_claim_boundary_v8.csv |
 | Revision target-image matrix | supplement_v8_sanitized/data/revision_20260919/target_image_matrix_runs_v8.csv and target_image_matrix_aggregate_v8.csv |
 | Revision semantic-fault audit | supplement_v8_sanitized/data/revision_20260919/event_fault_recovery_runs_v8.csv and event_fault_recovery_aggregate_v8.csv |
 | Revision natural-event controls | supplement_v8_sanitized/data/revision_20260919/event_matched_controls_revision_v8.csv |
 | Parameters and file hashes | data/method_parameter_table_v2.csv, data/runtime_asset_manifest_v8.csv, supplement_v8_sanitized/data/code_manifest_v8.csv, and supplement_v8_sanitized/SOURCE_SNAPSHOT_PROVENANCE_v8.md |
 
-All means and standard deviations in the revised tables use the sample SD convention. Superseded Semantic MPC rows and the conflicting 5/18 threshold table are excluded from v1.0.2. The package-level verification script fails if those files reappear.
+All means and standard deviations in the revised tables use the sample SD convention. Superseded Semantic MPC rows and the conflicting 5/18 threshold table are excluded from v1.0.3. The package-level verification script fails if those files reappear.
 
 ## Reproducibility Limits
 
