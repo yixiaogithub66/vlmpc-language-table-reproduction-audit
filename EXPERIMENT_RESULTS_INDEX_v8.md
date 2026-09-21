@@ -1,6 +1,6 @@
 # Experiment Results Index v8
 
-This index maps every manuscript result family to a file that exists in the public v1.0.3 artifact. Raw service logs are not redistributed because they contain machine-local runtime metadata.
+This index maps every manuscript result family to a file that exists in the public v1.0.4 artifact. Raw service logs are not redistributed because they contain machine-local runtime metadata.
 
 ## Authoritative Evidence
 
@@ -30,5 +30,6 @@ This index maps every manuscript result family to a file that exists in the publ
 - DATA_CODE_AVAILABILITY_v8.md
 - FINAL_MANIFEST_v8.md
 - scripts/verify_artifact.py
+- scripts/plot_paper_figures.py
 
 Run python scripts/verify_artifact.py from the repository root before submission. The paper intentionally makes no claim that the natural event trigger provides causal recovery benefit.

@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.4
+
+- Replaced the legacy publication figures with reproducible Python-rendered vector figures at final IEEE column widths.
+- Added a cleaner method pipeline schematic, threshold-sensitivity matrix, two-panel target/event audit, and readable qualitative-frame composite.
+- Updated figure captions, public documentation, and manuscript release references while preserving all reported data and statistics.
+- Added figure-source and rendered-QA artifacts; v1.0.3 remains available as the previous evidence-only release.
+
 ## v1.0.3
 
 - Removed the remaining superseded aggregate summary that reported a different 18-run mean.

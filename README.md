@@ -4,7 +4,7 @@ This repository is the public revision artifact for Traceable Reproduction Audit
 
 The artifact preserves the negative unmodified-reproduction results, the privileged-feedback diagnostic results, and the focused target-image and semantic-fault experiments without presenting those branches as equivalent evidence.
 
-Use release v1.0.3. Releases v1.0.0, v1.0.1, and v1.0.2 are retained for provenance but are superseded. Version 1.0.0 included conflicting historical Semantic MPC rows and an ambiguous source-snapshot hash; version 1.0.1 corrected those issues but exposed a Windows/Git line-ending mismatch; version 1.0.2 fixed the line endings but retained one old aggregate summary, which is removed here.
+Use release v1.0.4. Releases v1.0.0, v1.0.1, v1.0.2, and v1.0.3 are retained for provenance but are superseded. Version 1.0.0 included conflicting historical Semantic MPC rows and an ambiguous source-snapshot hash; version 1.0.1 corrected those issues but exposed a Windows/Git line-ending mismatch; version 1.0.2 fixed the line endings but retained one old aggregate summary; version 1.0.3 removed that final evidence conflict. Version 1.0.4 adds the revised publication figures and a reproducible figure-rendering script.
 
 ## Start Here
 
@@ -16,6 +16,7 @@ Use release v1.0.3. Releases v1.0.0, v1.0.1, and v1.0.2 are retained for provena
 - data/semantic_mpc_authoritative_runs_v8.csv: sole authoritative final 18-run Semantic MPC dataset.
 - supplement_v8_sanitized/data/revision_20260919/: new per-run and aggregate evidence.
 - supplement_v8_sanitized/source/: reviewer-facing source snapshot.
+- scripts/plot_paper_figures.py: reproducible manuscript figure renderer.
 
 ## Headline Results
 
@@ -43,7 +44,7 @@ The script recomputes the headline statistics, checks the target-image and seman
 
 ## Citation
 
-Citation metadata is provided in CITATION.cff. Use release v1.0.3 when referring to the exact revision artifact.
+Citation metadata is provided in CITATION.cff. Use release v1.0.4 when referring to the exact revision artifact.
 
 ## Licensing Note
 

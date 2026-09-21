@@ -3,8 +3,8 @@
 ## Public Release
 
 - Repository: https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit
-- Corrected immutable release: v1.0.3
-- Superseded releases retained for provenance: v1.0.0, v1.0.1, and v1.0.2
+- Corrected immutable release: v1.0.4
+- Superseded releases retained for provenance: v1.0.0, v1.0.1, v1.0.2, and v1.0.3
 
 ## Manuscript
 
@@ -20,6 +20,7 @@
 - EXPERIMENT_RESULTS_INDEX_v8.md: public artifact-to-claim index.
 - supplement_v8_sanitized/: sanitized derived statistics and source snapshot.
 - scripts/verify_artifact.py: executable consistency checks.
+- scripts/plot_paper_figures.py: reproducible publication-figure renderer.
 
 ## Evidence Boundaries
 
@@ -34,6 +35,6 @@
 ## Pre-submission Gate
 
 - Run python scripts/verify_artifact.py and require a passing result.
-- Confirm that the repository and v1.0.3 release resolve publicly.
+- Confirm that the repository and v1.0.4 release resolve publicly.
 - Confirm zero undefined citations and references after the final LaTeX build.
 - Do not add raw logs, API credentials, private gateway addresses, local absolute paths, virtual environments, or third-party model weights.

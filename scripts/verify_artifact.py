@@ -93,6 +93,17 @@ for row in manifest:
             f"Byte-identical source hashes differ: {row['relative_path']}",
         )
 
+required_figure_files = [
+    "figures/final_distance_distribution_v5.pdf",
+    "figures/threshold_sensitivity_v5.pdf",
+    "figures/target_event_audit_v5.pdf",
+    "figures/method_pipeline_v7.pdf",
+    "figures/qualitative_frames_v5.png",
+    "scripts/plot_paper_figures.py",
+]
+for relative_path in required_figure_files:
+    check((ROOT / relative_path).is_file(), f"Missing current publication artifact: {relative_path}")
+
 legacy_files = [
     "data/historical_threshold_sensitivity.csv",
     "data/historical_unmodified_grounded_per_run_results.csv",
@@ -102,6 +113,11 @@ legacy_files = [
     "data/checkpoint_and_code_manifest_v4.csv",
     "supplement_v8_sanitized/data/condition_statistics_v7.csv",
     "supplement_v8_sanitized/data/event_requery_controls_20260620_180646.csv",
+    "figures/final_distance_distribution_v4.pdf",
+    "figures/threshold_sensitivity_v4.pdf",
+    "figures/target_event_audit_v4.pdf",
+    "figures/method_pipeline_v6.png",
+    "figures/qualitative_frames_v4.png",
 ]
 for relative_path in legacy_files:
     check(not (ROOT / relative_path).exists(), f"Superseded or empty file still present: {relative_path}")

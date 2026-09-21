@@ -112,7 +112,7 @@ All numerical results in this paper are extracted from the study package. The ma
 \item GIF/MP4 outputs and key frames used as qualitative evidence;
 \item robustness-edge audit CSVs covering occlusion, viewpoint proxy, brightness shift, and unknown-target rejection.
 \end{itemize}
-The reporting goal is to make every claim traceable to these artifacts rather than to a post-hoc manual description. The final online VLM path is logged as an OpenAI-compatible backend using the responses wire API and a \texttt{gpt-5.5}-labeled gateway model alias. We report this alias because it affects reproducibility, while excluding the API key and gateway base URL from the paper text. The revision controls use strict no-cache mode and record zero cache hits. They still do not prove that natural re-query causes recovery because matched no-event controls also succeed. The public revision artifact is available at \url{https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit} (release \texttt{v1.0.3}). It contains the authoritative result files, a reproduction guide, parameter records, separate runtime-asset and source-snapshot manifests, and a reviewer-facing source snapshot. Third-party model weights are not redistributed and must be obtained from their original sources.
+The reporting goal is to make every claim traceable to these artifacts rather than to a post-hoc manual description. The final online VLM path is logged as an OpenAI-compatible backend using the responses wire API and a \texttt{gpt-5.5}-labeled gateway model alias. We report this alias because it affects reproducibility, while excluding the API key and gateway base URL from the paper text. The revision controls use strict no-cache mode and record zero cache hits. They still do not prove that natural re-query causes recovery because matched no-event controls also succeed. The public revision artifact is available at \url{https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit} (release \texttt{v1.0.4}). It contains the authoritative result files, a reproduction guide, parameter records, publication-figure source and exports, separate runtime-asset and source-snapshot manifests, and a reviewer-facing source snapshot. Third-party model weights are not redistributed and must be obtained from their original sources.
 
 \section{Method}
 \subsection{Unmodified Reproduction Chain}
@@ -200,8 +200,8 @@ Event-control supplement & Monitor stagnation/semantic events and refresh the VL
 
 \begin{figure*}[!t]
   \centering
-  \includegraphics[width=0.98\textwidth]{method_pipeline_v6.png}
-  \caption{Strict method overview. The unmodified reproduction branch is separated from feedback-assisted diagnostic branches. Grounded original MPC and semantic MPC use privileged state feedback for execution, so their successes are reported as diagnostic stabilization rather than unmodified VLMPC success. The event-control path verifies trigger execution under matched no-cache controls, not causal recovery.}
+  \includegraphics[width=0.98\textwidth]{method_pipeline_v7.pdf}
+  \caption{Strict method overview. The common pipeline is separated from the evidence branches. Grounded original MPC and semantic MPC use privileged state feedback for execution, so their successes are reported as diagnostic stabilization rather than unmodified VLMPC success. The event-control path verifies trigger execution under matched no-cache controls, not causal recovery.}
   \label{fig:method}
 \end{figure*}
 
@@ -276,15 +276,15 @@ All latest runs & 18 & $0.0641\pm0.0150$ & 3/18 & 18/18 & union of above & Bound
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{final_distance_distribution_v4}
-  \caption{Final-distance distribution across archived suites. The unmodified runs remain far above the 0.08 threshold, while feedback-assisted diagnostics cluster below it. The plot is intentionally distance-based rather than a redundant all-success bar chart.}
+  \includegraphics[width=\columnwidth]{final_distance_distribution_v5.pdf}
+  \caption{Final-distance distributions across archived suites. Each dot is one run and the horizontal segment is the within-suite median. The unmodified runs remain far above the 0.08 threshold, while feedback-assisted diagnostics cluster below it.}
   \label{fig:distance}
 \end{figure}
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{threshold_sensitivity_v4}
-  \caption{Threshold sensitivity at 0.05, 0.08, and 0.10. Unmodified runs fail at all three thresholds. Grounded diagnostic runs pass only at 0.08 or above, while the latest semantic MPC suite is 3/18 at 0.05. The headline successes therefore indicate coarse completion under the evaluation tolerance, not precision placement.}
+  \includegraphics[width=\columnwidth]{threshold_sensitivity_v5.pdf}
+  \caption{Threshold sensitivity at 0.05, 0.08, and 0.10, shown as exact success counts. The outlined column is the project threshold. Unmodified runs fail at all three thresholds, while the latest semantic MPC suite is 3/18 at 0.05 and 18/18 at 0.08.}
   \label{fig:threshold}
 \end{figure}
 
@@ -352,8 +352,8 @@ The treatment reaches the correct semantic target in all three paired runs, but 
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{target_event_audit_v4}
-  \caption{Target-image and event-control audits. The VLM semantic selector corrects the old full-frame heuristic failure in the four audited target-image cases. Event controls record zero cache hits and matched event triggers, but no-event and event-enabled final distances are identical by seed.}
+  \includegraphics[width=\columnwidth]{target_event_audit_v5.pdf}
+  \caption{Target-image and event-control audits. (a) The VLM semantic selector corrects the old full-frame heuristic failure in the four audited target-image cases. (b) Strict no-cache matched controls have identical no-event and event-enabled final distances by seed; all nine archived rows record zero cache hits.}
   \label{fig:eventtarget}
 \end{figure}
 
@@ -457,8 +457,8 @@ Unknown target & safe reject & -- \\
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{qualitative_frames_v4.png}
-  \caption{Representative latest target-image run frames. The quantitative claim is taken from CSV/JSON metrics; the frames provide qualitative evidence that the logged run is a real Language-Table execution rather than a table-only report.}
+  \includegraphics[width=\columnwidth]{qualitative_frames_v5.png}
+  \caption{Representative frames from the latest target-image run. The quantitative claim is taken from CSV/JSON metrics; the frames provide qualitative evidence that the logged run is a real Language-Table execution rather than a table-only report.}
   \label{fig:qualitative}
 \end{figure}
 
@@ -479,7 +479,7 @@ Second, event-triggered re-query should be tested over more instructions, pertur
 Third, target-image grounding should be evaluated with a larger set of image queries, cropped-object references, full-frame references, and manually verified semantic labels. These additions would convert the current diagnostic report into a stronger experimental paper without changing the interpretation of the current evidence.
 
 \subsection{Data and Code Availability}
-The public revision artifact at \url{https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit} (release \texttt{v1.0.3}) includes the manuscript source, one authoritative 18-run Semantic MPC file, regenerated threshold and condition statistics, sanitized per-run and aggregate CSVs for the target-image matrix and semantic-fault audit, exact method parameters, separate runtime-asset and source-snapshot manifests, an automated consistency check, and a reviewer-facing source snapshot. It deliberately excludes API credentials, private gateway addresses, local absolute paths, virtual environments, raw service logs, and third-party model weights. The reported aggregates and table values can be recomputed from the included summaries without relying on cached VLM responses. End-to-end reruns additionally require independently obtained detector, tracker, and video-prediction checkpoints and a separately configured compatible VLM backend, as documented in the reproduction guide.
+The public revision artifact at \url{https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit} (release \texttt{v1.0.4}) includes the manuscript source, one authoritative 18-run Semantic MPC file, regenerated threshold and condition statistics, sanitized per-run and aggregate CSVs for the target-image matrix and semantic-fault audit, exact method parameters, a reproducible figure-rendering script, separate runtime-asset and source-snapshot manifests, an automated consistency check, and a reviewer-facing source snapshot. It deliberately excludes API credentials, private gateway addresses, local absolute paths, virtual environments, raw service logs, and third-party model weights. The reported aggregates and table values can be recomputed from the included summaries without relying on cached VLM responses. End-to-end reruns additionally require independently obtained detector, tracker, and video-prediction checkpoints and a separately configured compatible VLM backend, as documented in the reproduction guide.
 
 \section{Conclusion}
 This paper presents a traceable audit and strict repair of a VLMPC-style Language-Table project. The unmodified video-prediction MPC chain is executable but fails in the archived controller comparison and parameter ablation runs. Feedback-assisted diagnostics stabilize the archived simulator tasks under the $\distw^{\mathrm{final}}\leq0.08$ evaluation tolerance, including a latest semantic-MPC suite with 18/18 execution successes, a nine-run target-image matrix with 8/9 semantic matches and 7/8 joint active successes, and a paired semantic-fault audit with 2/3 true-target successes after forced re-query. These successes rely on privileged simulator-state feedback and remain tolerance-dependent, with only 3/18 semantic-MPC successes at 0.05. The revision controls do not show a natural-event recovery advantage. The study outcome is therefore best understood as a negative reproduction audit plus a diagnostic repair with explicit limitations, not as a successful unmodified VLMPC reproduction. Future work should replace simulator-state feedback with the specified visual-state estimator, broaden event-requery ablations with induced failures, expand target-image grounding tests, and report success under stricter tolerances.
