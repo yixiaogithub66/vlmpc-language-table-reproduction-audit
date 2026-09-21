@@ -1,6 +1,6 @@
 # Reproduction Guide v8
 
-This guide accompanies the revised manuscript and defines the artifact-to-table mapping, environment assumptions, and commands used for the revision experiments. The public artifact is available at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit (release v1.0.1). Commands use paths relative to the source snapshot and symbolic local paths for runtime assets that are not redistributed.
+This guide accompanies the revised manuscript and defines the artifact-to-table mapping, environment assumptions, and commands used for the revision experiments. The public artifact is available at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit (release v1.0.2). Commands use paths relative to the source snapshot and symbolic local paths for runtime assets that are not redistributed.
 
 ## Scope and Evidence Boundary
 
@@ -102,7 +102,7 @@ The archived nine-row control file is retained for provenance. The revision cont
 | Revision natural-event controls | supplement_v8_sanitized/data/revision_20260919/event_matched_controls_revision_v8.csv |
 | Parameters and file hashes | data/method_parameter_table_v2.csv, data/runtime_asset_manifest_v8.csv, supplement_v8_sanitized/data/code_manifest_v8.csv, and supplement_v8_sanitized/SOURCE_SNAPSHOT_PROVENANCE_v8.md |
 
-All means and standard deviations in the revised tables use the sample SD convention. Superseded Semantic MPC rows and the conflicting 5/18 threshold table are excluded from v1.0.1. The package-level verification script fails if those files reappear.
+All means and standard deviations in the revised tables use the sample SD convention. Superseded Semantic MPC rows and the conflicting 5/18 threshold table are excluded from v1.0.2. The package-level verification script fails if those files reappear.
 
 ## Reproducibility Limits
 

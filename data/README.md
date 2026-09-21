@@ -1,6 +1,6 @@
 # Evidence Data Map
 
-The v1.0.1 artifact uses one authoritative source for each reported result family.
+The v1.0.2 artifact uses one authoritative source for each reported result family.
 
 ## Authoritative files
 

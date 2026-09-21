@@ -1,6 +1,6 @@
 # Response to the Co-chair and Reviewers
 
-We thank the co-chair and three reviewers for their careful assessment. We revised the manuscript and public artifact around four principles: preserve the unsuccessful unmodified reproduction, separate privileged-feedback diagnostics from original VLMPC evidence, make every reported number traceable to one authoritative file, and state clearly which requested experiments remain future work. The corrected public artifact is available at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit, release v1.0.1.
+We thank the co-chair and three reviewers for their careful assessment. We revised the manuscript and public artifact around four principles: preserve the unsuccessful unmodified reproduction, separate privileged-feedback diagnostics from original VLMPC evidence, make every reported number traceable to one authoritative file, and state clearly which requested experiments remain future work. The corrected public artifact is available at https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit, release v1.0.2.
 
 ## Co-chair
 
@@ -26,7 +26,7 @@ The distinction between privileged-feedback-assisted success and genuine origina
 
 Since traceability is a central contribution, please provide a clear availability statement and an accessible repository or supplementary-package reference. A short guide linking the main tables to the corresponding configurations, logs, and execution commands would make the reported audit easier to reproduce.
 
-**Response:** We added a public repository, a fixed v1.0.1 release, a Data and Code Availability subsection, a reproduction guide, and an experiment-results index. The artifact contains one authoritative 18-run Semantic MPC file, regenerated threshold and condition statistics, sanitized revision CSVs, experiment drivers, exact method parameters, separate runtime-asset and source-snapshot manifests, and an automated verification script. Credentials, private endpoints, machine-local paths, raw service logs, and third-party model weights are excluded. End-to-end reruns therefore require independently obtained checkpoints and a separately configured compatible VLM backend.
+**Response:** We added a public repository, a fixed v1.0.2 release, a Data and Code Availability subsection, a reproduction guide, and an experiment-results index. The artifact contains one authoritative 18-run Semantic MPC file, regenerated threshold and condition statistics, sanitized revision CSVs, experiment drivers, exact method parameters, separate runtime-asset and source-snapshot manifests, and an automated verification script. Credentials, private endpoints, machine-local paths, raw service logs, and third-party model weights are excluded. End-to-end reruns therefore require independently obtained checkpoints and a separately configured compatible VLM backend.
 
 **Location:** Data and Code Availability, p. 8; REPRODUCTION_GUIDE_v8.md; EXPERIMENT_RESULTS_INDEX_v8.md; DATA_CODE_AVAILABILITY_v8.md; scripts/verify_artifact.py.
 

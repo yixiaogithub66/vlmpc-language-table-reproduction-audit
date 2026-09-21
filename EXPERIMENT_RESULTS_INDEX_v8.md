@@ -1,6 +1,6 @@
 # Experiment Results Index v8
 
-This index maps every manuscript result family to a file that exists in the public v1.0.1 artifact. Raw service logs are not redistributed because they contain machine-local runtime metadata.
+This index maps every manuscript result family to a file that exists in the public v1.0.2 artifact. Raw service logs are not redistributed because they contain machine-local runtime metadata.
 
 ## Authoritative Evidence
 
