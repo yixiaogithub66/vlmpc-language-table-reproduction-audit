@@ -1,0 +1,4 @@
+condition,n,success_008,natural_requeries,mean_final_world_distance,sample_sd_final_world_distance,min_final,max_final,cache_hits,fresh_vlm_responses
+matched_no_event_instruction,3,3/3,0/3,0.058707,0.023266,0.033165,0.078689,0,3
+matched_event_instruction,3,3/3,3/3,0.058707,0.023266,0.033165,0.078689,0,6
+scene_forced_requery_audit,3,3/3,3/3,0.052108,0.015639,0.034506,0.064403,0,18

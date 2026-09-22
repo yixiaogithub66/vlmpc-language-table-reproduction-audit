@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.5
+
+- Added the fresh four-variant, four-seed raw-MPC sweep and the complete revision evidence index.
+- Added target-image, matched event-control, controlled semantic-fault, and detector/tracker visual-feedback results.
+- Updated the manuscript, figures, data/code statement, reproduction guide, and point-by-point response letter to use the same v1.0.5 evidence set.
+- Removed superseded aggregate files and clarified archived versus fresh evidence.
+
 ## v1.0.4
 
 - Replaced the legacy publication figures with reproducible Python-rendered vector figures at final IEEE column widths.

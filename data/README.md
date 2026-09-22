@@ -1,15 +1,13 @@
-# Evidence Data Map
+# Portable Data
 
-The v1.0.4 artifact uses one authoritative source for each reported result family.
+This directory contains the CSVs used directly by the manuscript and its figure scripts.
 
-## Authoritative files
+- raw_controller_multiseed_runs_v9.csv: fresh raw four-variant sweep, 16 rows, seeds 45--48.
+- raw_controller_multiseed_v9.csv: aggregate companion table for the fresh raw sweep.
+- semantic_mpc_live_runs_v9.csv: 18 heterogeneous semantic diagnostic rows.
+- threshold_sensitivity_v9.csv: threshold counts across the portable suites.
+- archived_nonsemantic_branch_runs_v8.csv: explicitly archived non-semantic rows retained for comparison.
+- method_parameter_table_v2.csv: parameter record used by the experiment descriptions.
+- runtime_asset_manifest_v9.csv: runtime-asset provenance manifest.
 
-- semantic_mpc_authoritative_runs_v8.csv contains the final 18-run Semantic MPC suite used by the manuscript.
-- threshold_sensitivity_v8.csv is regenerated from that 18-run file and archived_nonsemantic_branch_runs_v8.csv.
-- archived_nonsemantic_branch_runs_v8.csv contains the unmodified, grounded, and single archived event branches only. It intentionally excludes the superseded 2026-06-06 Semantic MPC rows.
-- supplement_v8_sanitized/data/semantic_mpc_condition_statistics_v8.csv contains sample-SD condition summaries regenerated from the authoritative 18 rows.
-- supplement_v8_sanitized/data/revision_20260919 contains the target-image, semantic-fault, and fresh matched event-control results.
-
-The authoritative Semantic MPC values are n=18, mean final distance 0.064119, sample SD 0.015025, 3/18 successes at 0.05, and 18/18 successes at 0.08.
-
-Superseded Semantic MPC rows, the old 5/18 threshold table, and the old aggregate summary with mean 0.059996 are not included in this release. Raw logs are not redistributed because they contain machine-local runtime metadata; sanitized run identifiers are retained where needed for provenance.
+Revision-specific rows are stored under ../supplement_v9_sanitized/data/revision_20260922/. Do not combine the archived rows with the fresh raw sweep when estimating seed-level variability.

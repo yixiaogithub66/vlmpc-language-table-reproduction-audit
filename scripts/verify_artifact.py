@@ -1,139 +1,100 @@
 #!/usr/bin/env python3
-import csv
-import hashlib
-import statistics
-import sys
+"""Verify the portable v1.0.5 evidence package."""
+from __future__ import annotations
+import csv, hashlib, re, statistics, sys
 from pathlib import Path
-
-
 ROOT = Path(__file__).resolve().parents[1]
-errors = []
+errors: list[str] = []
+def read_csv(path: str) -> list[dict[str, str]]:
+    with (ROOT / path).open(newline="", encoding="utf-8-sig") as f:
+        return list(csv.DictReader(f))
+def check(ok: bool, msg: str) -> None:
+    if not ok: errors.append(msg)
+def distances(rows, col): return [float(r[col]) for r in rows]
 
+raw = read_csv("data/raw_controller_multiseed_runs_v9.csv")
+rd = distances(raw, "final_target_world_distance")
+check(len(raw) == 16, "raw sweep must contain 16 rows")
+check(set(r["seed"] for r in raw) == {"45", "46", "47", "48"}, "raw seeds must be 45--48")
+check(sum(r["target_success"] == "True" for r in raw) == 0, "raw success must be 0/16")
+check(abs(statistics.mean(rd) - 0.32447217032313347) < 1e-12, "raw mean mismatch")
+check(abs(statistics.stdev(rd) - 0.10846493708119562) < 1e-12, "raw SD mismatch")
+for v in ("baseline", "improved", "literature", "literature_v2"):
+    vr = [r for r in raw if r["controller_variant"] == v]
+    check(len(vr) == 4 and sum(r["target_success"] == "True" for r in vr) == 0, f"raw variant {v} mismatch")
 
-def read_csv(relative_path):
-    with (ROOT / relative_path).open(newline="", encoding="utf-8-sig") as handle:
-        return list(csv.DictReader(handle))
+semantic = read_csv("data/semantic_mpc_live_runs_v9.csv")
+sd = distances(semantic, "final_target_world_distance")
+check(len(semantic) == 18, "semantic suite must contain 18 rows")
+check(sum(x <= .05 for x in sd) == 3 and sum(x <= .08 for x in sd) == 18, "semantic threshold counts mismatch")
+check(abs(statistics.mean(sd) - 0.0641187511177527) < 1e-12, "semantic mean mismatch")
+check(abs(statistics.stdev(sd) - 0.0150250791979494) < 1e-12, "semantic SD mismatch")
+conds = read_csv("supplement_v9_sanitized/data/revision_20260922/semantic_mpc_condition_statistics_v9.csv")
+all_live = next((r for r in conds if r["condition"] == "all_live_runs"), None)
+check(all_live is not None and all_live["n"] == "18" and all_live["success_005"] == "3/18" and all_live["success_008"] == "18/18", "semantic condition summary mismatch")
 
-
-def check(condition, message):
-    if not condition:
-        errors.append(message)
-
-
-semantic_path = "data/semantic_mpc_authoritative_runs_v8.csv"
-semantic = read_csv(semantic_path)
-semantic_distances = [float(row["final_target_world_distance"]) for row in semantic]
-check(len(semantic_distances) == 18, "Semantic MPC authoritative file must contain 18 rows")
-check(sum(value <= 0.05 for value in semantic_distances) == 3, "Semantic MPC 0.05 count must be 3/18")
-check(sum(value <= 0.08 for value in semantic_distances) == 18, "Semantic MPC 0.08 count must be 18/18")
-check(abs(statistics.mean(semantic_distances) - 0.0641187511177527) < 1e-12, "Semantic MPC mean mismatch")
-check(abs(statistics.stdev(semantic_distances) - 0.0150250791979494) < 1e-12, "Semantic MPC sample SD mismatch")
-
-thresholds = read_csv("data/threshold_sensitivity_v8.csv")
-semantic_thresholds = {
-    row["threshold"]: row["success"]
-    for row in thresholds
-    if row["suite"] == "Semantic MPC"
-}
-check(semantic_thresholds == {"0.05": "3/18", "0.08": "18/18", "0.10": "18/18"}, "Threshold table does not match authoritative Semantic MPC runs")
-check(
-    all(
-        row["authoritative_source"] == semantic_path
-        for row in thresholds
-        if row["suite"] == "Semantic MPC"
-    ),
-    "Semantic MPC threshold rows must name the authoritative source",
-)
-
+thresholds = read_csv("data/threshold_sensitivity_v9.csv")
+check(len(thresholds) == 18, "threshold table must contain 18 rows")
+sem_thr = {r["threshold"]: r["success"] for r in thresholds if r["suite"] == "Semantic MPC"}
+check(sem_thr == {"0.05": "3/18", "0.08": "18/18", "0.10": "18/18"}, "semantic threshold table mismatch")
 archived = read_csv("data/archived_nonsemantic_branch_runs_v8.csv")
-check(all(row["suite"] != "Semantic MPC" for row in archived), "Archived nonsemantic file contains Semantic MPC rows")
+check(all(r["suite"] != "Semantic MPC" for r in archived), "archived file contains semantic rows")
 
-conditions = read_csv("supplement_v8_sanitized/data/semantic_mpc_condition_statistics_v8.csv")
-all_runs = next((row for row in conditions if row["condition"] == "all_authoritative_runs"), None)
-check(all_runs is not None, "Missing all_authoritative_runs condition row")
-if all_runs:
-    check(all_runs["n"] == "18", "Condition summary n must be 18")
-    check(all_runs["mean_final_world_distance"] == "0.064119", "Condition summary mean mismatch")
-    check(all_runs["sample_sd_final_world_distance"] == "0.015025", "Condition summary sample SD mismatch")
-    check(all_runs["success_005"] == "3/18", "Condition summary 0.05 count mismatch")
-    check(all_runs["success_008"] == "18/18", "Condition summary 0.08 count mismatch")
+target = read_csv("supplement_v9_sanitized/data/revision_20260922/target_image_matrix_runs_v9.csv")
+check(len(target) == 9 and set(r["seed"] for r in target) == {"42", "43", "44"}, "target matrix size or seeds mismatch")
+check(sum(r["semantic_match"] == "True" for r in target) == 8, "target semantic count mismatch")
+check(sum(r["pre_satisfied"] == "True" for r in target) == 0, "target matrix has pre-satisfied row")
+check(sum(r["joint_active_success"] == "True" for r in target) == 8, "target joint count mismatch")
 
-target_matrix = read_csv("supplement_v8_sanitized/data/revision_20260919/target_image_matrix_runs_v8.csv")
-check(len(target_matrix) == 9, "Target-image matrix must contain nine runs")
-check(sum(row["semantic_match"] == "True" for row in target_matrix) == 8, "Target-image semantic count must be 8/9")
-check(sum(row["pre_satisfied"] == "True" for row in target_matrix) == 1, "Target-image matrix must contain one pre-satisfied run")
-active = [row for row in target_matrix if row["pre_satisfied"] != "True"]
-check(len(active) == 8, "Target-image active denominator must be eight")
-check(sum(row["joint_active_success"] == "True" for row in active) == 7, "Target-image joint active count must be 7/8")
+events = read_csv("supplement_v9_sanitized/data/revision_20260922/event_requery_controls_v9.csv")
+no_event = [r for r in events if r["case"] == "matched_no_event_instruction"]
+enabled = [r for r in events if r["case"] == "matched_event_instruction"]
+forced = [r for r in events if r["case"] == "scene_forced_requery_audit"]
+check(len(events) == 9 and len(no_event) == len(enabled) == len(forced) == 3, "event case sizes mismatch")
+check(sum(int(r["natural_event_requeries"]) > 0 for r in enabled) == 3 and sum(int(r["natural_event_requeries"]) > 0 for r in no_event) == 0, "event trigger counts mismatch")
+check(sum(int(r["cache_hits_in_log"]) for r in events) == 0, "event cache hits are nonzero")
+for seed in ("42", "43", "44"):
+    a = next(r for r in no_event if r["seed"] == seed); b = next(r for r in enabled if r["seed"] == seed)
+    check(a["final_target_world_distance"] == b["final_target_world_distance"], f"event final distance differs for seed {seed}")
+check(all(int(r["event_requeries"]) >= 2 for r in forced), "forced audit query count mismatch")
 
-fault = read_csv("supplement_v8_sanitized/data/revision_20260919/event_fault_recovery_runs_v8.csv")
-treatment = [row for row in fault if row["case"] == "with_synthetic_requery"]
-control = [row for row in fault if row["case"] == "no_requery"]
-check(sum(row["semantic_recovered"] == "True" for row in treatment) == 3, "Synthetic re-query repair count must be 3/3")
-check(sum(row["task_success"] == "True" for row in treatment) == 2, "Synthetic re-query true-target success must be 2/3")
-check(sum(row["task_success"] == "True" for row in control) == 0, "No-requery control success must be 0/3")
+fault = read_csv("supplement_v9_sanitized/data/revision_20260922/event_fault_recovery_runs_v9.csv")
+treat = [r for r in fault if r["case"] == "with_synthetic_requery"]
+control = [r for r in fault if r["case"] == "no_requery"]
+check(len(treat) == len(control) == 3, "fault audit sizes mismatch")
+check(sum(r["semantic_recovered"] == "True" for r in treat) == 3 and sum(r["task_success"] == "True" for r in treat) == 2 and sum(r["task_success"] == "True" for r in control) == 0, "fault audit counts mismatch")
 
-matched = read_csv("supplement_v8_sanitized/data/revision_20260919/event_matched_controls_revision_v8.csv")
-for seed in ("45", "46", "47"):
-    rows = [row for row in matched if row["seed"] == seed]
-    check(len(rows) == 2, f"Matched natural-event controls missing seed {seed}")
-    if len(rows) == 2:
-        check(rows[0]["final_distance"] == rows[1]["final_distance"], f"Natural-event final distances differ for seed {seed}")
+visual = read_csv("supplement_v9_sanitized/data/revision_20260922/visual_feedback_runs_v9.csv")
+vd = distances(visual, "final_target_world_distance")
+check(len(visual) == 6 and sum(r["overall_success"] == "True" for r in visual) == 0, "visual feedback must be 0/6")
+check(abs(statistics.mean(vd) - 0.31604154283801716) < 1e-12, "visual mean mismatch")
+check(abs(statistics.stdev(vd) - 0.14392881447322622) < 1e-12, "visual SD mismatch")
 
-manifest = read_csv("supplement_v8_sanitized/data/code_manifest_v8.csv")
+manifest = read_csv("supplement_v9_sanitized/data/code_manifest_v9.csv")
 for row in manifest:
-    path = ROOT / row["relative_path"]
-    check(path.is_file(), f"Missing public source snapshot: {row['relative_path']}")
-    if path.is_file():
-        digest = hashlib.sha256(path.read_bytes()).hexdigest()
-        check(digest == row["public_snapshot_sha256"], f"Public snapshot hash mismatch: {row['relative_path']}")
-    if row["relationship"] == "byte-identical":
-        check(
-            row["executed_source_sha256"] == row["public_snapshot_sha256"],
-            f"Byte-identical source hashes differ: {row['relative_path']}",
-        )
+    p = ROOT / row["relative_path"]
+    check(p.is_file(), f"missing source snapshot: {row['relative_path']}")
+    if p.is_file():
+        check(hashlib.sha256(p.read_bytes()).hexdigest() == row["public_snapshot_sha256"], f"snapshot hash mismatch: {row['relative_path']}")
+    if row["relationship"] == "byte-identical": check(row["executed_source_sha256"] == row["public_snapshot_sha256"], f"byte-identical hash mismatch: {row['relative_path']}")
 
-required_figure_files = [
-    "figures/final_distance_distribution_v5.pdf",
-    "figures/threshold_sensitivity_v5.pdf",
-    "figures/target_event_audit_v5.pdf",
-    "figures/method_pipeline_v7.pdf",
-    "figures/qualitative_frames_v5.png",
-    "scripts/plot_paper_figures.py",
-]
-for relative_path in required_figure_files:
-    check((ROOT / relative_path).is_file(), f"Missing current publication artifact: {relative_path}")
-
-legacy_files = [
-    "data/historical_threshold_sensitivity.csv",
-    "data/historical_unmodified_grounded_per_run_results.csv",
-    "data/latest_semantic_suite_summary.csv",
-    "data/opening_report_complete_summary_20260620_173545.csv",
-    "data/historical_extracted_results_summary.csv",
-    "data/checkpoint_and_code_manifest_v4.csv",
-    "supplement_v8_sanitized/data/condition_statistics_v7.csv",
-    "supplement_v8_sanitized/data/event_requery_controls_20260620_180646.csv",
-    "figures/final_distance_distribution_v4.pdf",
-    "figures/threshold_sensitivity_v4.pdf",
-    "figures/target_event_audit_v4.pdf",
-    "figures/method_pipeline_v6.png",
-    "figures/qualitative_frames_v4.png",
-]
-for relative_path in legacy_files:
-    check(not (ROOT / relative_path).exists(), f"Superseded or empty file still present: {relative_path}")
-
-for path in ROOT.rglob("*"):
-    if path.is_file() and path.suffix.lower() in {".csv", ".json", ".md", ".py"}:
-        check(path.stat().st_size > 0, f"Zero-byte artifact: {path.relative_to(ROOT)}")
+required = ["figures/final_distance_distribution_v9.pdf", "figures/threshold_sensitivity_v9.pdf", "figures/target_event_audit_v9.pdf", "figures/method_pipeline_v9.pdf", "figures/qualitative_frames_v9.png", "scripts/plot_paper_figures.py", "scripts/import_live_results_v9.py"]
+for path in required: check((ROOT / path).is_file(), f"missing artifact: {path}")
+for path in ["data/semantic_mpc_authoritative_runs_v8.csv", "data/threshold_sensitivity_v8.csv", "data/event_requery_controls_20260620_180646.csv", "data/target_image_selection_audit_20260620_164822.csv", "supplement_v8_sanitized", "supplement_v9_sanitized/data/revision_20260919", "figures/final_distance_distribution_v5.pdf", "figures/threshold_sensitivity_v5.pdf", "figures/target_event_audit_v5.pdf", "figures/method_pipeline_v7.pdf"]:
+    check(not (ROOT / path).exists(), f"superseded artifact still present: {path}")
+for p in ROOT.rglob("*"):
+    if p.is_file() and p.suffix.lower() in {".csv", ".json", ".md", ".py", ".tex"}:
+        check(p.stat().st_size > 0, f"zero-byte artifact: {p.relative_to(ROOT)}")
+        check(not re.search(r"sk-[A-Za-z0-9]{20,}", p.read_text(encoding="utf-8", errors="ignore")), f"credential-like string: {p.relative_to(ROOT)}")
 
 if errors:
     print("ARTIFACT VERIFICATION FAILED")
-    for error in errors:
-        print(f"- {error}")
+    for e in errors: print("-", e)
     sys.exit(1)
-
 print("ARTIFACT VERIFICATION PASSED")
-print("Semantic MPC: n=18, mean=0.064119, sample SD=0.015025, 3/18 at 0.05, 18/18 at 0.08")
-print("Target-image matrix: 8/9 semantic matches, 7/8 joint active successes")
-print("Semantic-fault audit: 3/3 repairs, 2/3 treatment successes, 0/3 control successes")
-print(f"Source snapshot hashes verified: {len(manifest)} files")
+print("Raw MPC: 0/16, mean=0.324472, sample SD=0.108465")
+print("Semantic MPC: 3/18 at 0.05, 18/18 at 0.08")
+print("Target image: 8/9 semantic, 8/9 joint, no pre-satisfied runs")
+print("Events: natural trigger 3/3 enabled, matched distances identical, cache hits 0")
+print("Visual feedback: 0/6, mean=0.316042, sample SD=0.143929")
+print(f"Source snapshot hashes verified: {len(manifest)}")

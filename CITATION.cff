@@ -1,9 +1,9 @@
 cff-version: 1.2.0
-message: "If you use this artifact, please cite the associated manuscript and the v1.0.4 release."
+message: "If you use this artifact, please cite the associated manuscript and the v1.0.5 revision artifact."
 title: "VLMPC Language-Table Reproduction Audit"
 type: software
-version: 1.0.4
-date-released: 2026-09-21
+version: 1.0.5
+date-released: 2026-09-22
 authors:
   - family-names: Yi
     given-names: Xiao

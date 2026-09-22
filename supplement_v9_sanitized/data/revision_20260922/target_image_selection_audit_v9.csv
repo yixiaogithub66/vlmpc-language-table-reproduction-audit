@@ -1,0 +1,5 @@
+case,expected_object,full_frame_corner_heuristic_choice,full_frame_corner_heuristic_match,crop_corner_heuristic_choice,crop_visual_match_choice,vlm_semantic_choice,vlm_semantic_match,vlm_raw_response,vlm_error,crop_corner_heuristic_match,crop_visual_match,detected_objects_full_frame
+red_moon_init_crop,red moon,blue cube,False,red pentagon,red moon,red moon,True,red moon,,False,True,blue cube|blue moon|green star|red moon|red pentagon|yellow pentagon|yellow star
+blue_cube_init_crop,blue cube,blue cube,True,blue cube,blue cube,blue cube,True,blue cube,,True,True,blue cube|blue moon|green star|red moon|red pentagon|yellow pentagon|yellow star
+yellow_pentagon_init_crop,yellow pentagon,blue cube,False,blue cube,yellow pentagon,yellow pentagon,True,yellow pentagon,,False,True,blue cube|blue moon|green star|red moon|red pentagon|yellow pentagon|yellow star
+archived_full_frame_target_image,red moon,blue cube,False,,,red moon,True,red moon,,,,blue cube|blue moon|green star|red moon|red pentagon|yellow pentagon|yellow star

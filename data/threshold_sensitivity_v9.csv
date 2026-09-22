@@ -1,0 +1,19 @@
+suite,threshold,success,success_rate,authoritative_source
+Fresh raw MPC,0.05,0/16,0.000000,data/raw_controller_multiseed_runs_v9.csv
+Fresh raw MPC,0.08,0/16,0.000000,data/raw_controller_multiseed_runs_v9.csv
+Fresh raw MPC,0.10,0/16,0.000000,data/raw_controller_multiseed_runs_v9.csv
+Archived ablation,0.05,0/8,0.000000,data/archived_nonsemantic_branch_runs_v8.csv
+Archived ablation,0.08,0/8,0.000000,data/archived_nonsemantic_branch_runs_v8.csv
+Archived ablation,0.10,0/8,0.000000,data/archived_nonsemantic_branch_runs_v8.csv
+Grounded diagnostics,0.05,0/12,0.000000,data/archived_nonsemantic_branch_runs_v8.csv
+Grounded diagnostics,0.08,12/12,1.000000,data/archived_nonsemantic_branch_runs_v8.csv
+Grounded diagnostics,0.10,12/12,1.000000,data/archived_nonsemantic_branch_runs_v8.csv
+Semantic MPC,0.05,3/18,0.166667,data/semantic_mpc_live_runs_v9.csv
+Semantic MPC,0.08,18/18,1.000000,data/semantic_mpc_live_runs_v9.csv
+Semantic MPC,0.10,18/18,1.000000,data/semantic_mpc_live_runs_v9.csv
+Target image,0.05,2/9,0.222222,supplement_v9_sanitized/data/revision_20260922/target_image_matrix_runs_v9.csv
+Target image,0.08,8/9,0.888889,supplement_v9_sanitized/data/revision_20260922/target_image_matrix_runs_v9.csv
+Target image,0.10,8/9,0.888889,supplement_v9_sanitized/data/revision_20260922/target_image_matrix_runs_v9.csv
+Visual feedback,0.05,0/6,0.000000,supplement_v9_sanitized/data/revision_20260922/visual_feedback_runs_v9.csv
+Visual feedback,0.08,0/6,0.000000,supplement_v9_sanitized/data/revision_20260922/visual_feedback_runs_v9.csv
+Visual feedback,0.10,1/6,0.166667,supplement_v9_sanitized/data/revision_20260922/visual_feedback_runs_v9.csv

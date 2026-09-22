@@ -1,0 +1,10 @@
+status,case,expected_object,seed,selected_object,semantic_match,pre_satisfied,terminal_threshold_satisfied,active_control_success,joint_active_success,selection_rule,initial_target_world_distance,final_target_world_distance,num_steps_executed,runtime_seconds_total,error
+ok,red_moon,red moon,42,red moon,True,False,True,True,True,vlm_target_scene_semantic_match,0.21805235743522644,0.06426556408405304,23,40.04796385765076,
+ok,red_moon,red moon,43,red moon,True,False,True,True,True,vlm_target_scene_semantic_match,0.2722683250904083,0.03316491097211838,20,36.87958526611328,
+ok,red_moon,red moon,44,red moon,True,False,True,True,True,vlm_target_scene_semantic_match,0.14291097223758698,0.07868905365467072,15,28.108083486557007,
+ok,blue_cube,blue cube,42,blue cube,True,False,True,True,True,vlm_target_scene_semantic_match,0.3486103415489197,0.07329227030277252,22,42.48836302757263,
+ok,blue_cube,blue cube,43,blue cube,True,False,True,True,True,vlm_target_scene_semantic_match,0.22761434316635132,0.0798729807138443,11,39.03285837173462,
+ok,blue_cube,blue cube,44,blue cube,True,False,True,True,True,vlm_target_scene_semantic_match,0.1221776232123375,0.03385224938392639,4,32.592787742614746,
+ok,yellow_pentagon,yellow pentagon,42,yellow star,False,False,False,False,False,vlm_target_scene_semantic_match,0.3386065661907196,0.3386065661907196,24,39.74607563018799,
+ok,yellow_pentagon,yellow pentagon,43,yellow pentagon,True,False,True,True,True,vlm_target_scene_semantic_match,0.30747300386428833,0.07541744410991669,11,37.933066844940186,
+ok,yellow_pentagon,yellow pentagon,44,yellow pentagon,True,False,True,True,True,vlm_target_scene_semantic_match,0.3067019283771515,0.07805224508047104,31,59.06157946586609,

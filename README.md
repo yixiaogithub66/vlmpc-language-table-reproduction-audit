@@ -1,51 +1,40 @@
 # VLMPC Language-Table Reproduction Audit
 
-This repository is the public revision artifact for Traceable Reproduction Audit and Feedback-Assisted Semantic-MPC for VLMPC-Style Language-Table Pushing by Xiao Yi and Yuanqiang Zhou.
+## Revision artifact v1.0.5
 
-The artifact preserves the negative unmodified-reproduction results, the privileged-feedback diagnostic results, and the focused target-image and semantic-fault experiments without presenting those branches as equivalent evidence.
+This package accompanies the revised manuscript **Traceable Reproduction Audit and Feedback-Assisted Diagnostics for VLMPC-Style Language-Table Pushing**. It contains the manuscript source, regenerated figures, sanitized experiment summaries, portable source snapshots, and verification scripts for the complete revision experiment suite.
 
-Use release v1.0.4. Releases v1.0.0, v1.0.1, v1.0.2, and v1.0.3 are retained for provenance but are superseded. Version 1.0.0 included conflicting historical Semantic MPC rows and an ambiguous source-snapshot hash; version 1.0.1 corrected those issues but exposed a Windows/Git line-ending mismatch; version 1.0.2 fixed the line endings but retained one old aggregate summary; version 1.0.3 removed that final evidence conflict. Version 1.0.4 adds the revised publication figures and a reproducible figure-rendering script.
+The package is an evidence-bound audit. It does not claim that the unmodified VLMPC video-prediction MPC chain was successfully reproduced. The fresh raw sweep contains 16 runs across four controller variants and seeds 45--48, with 0/16 runs meeting the project success threshold. Positive oracle-feedback results are reported separately as diagnostic stabilization, because privileged simulator state determines the executed action in those branches.
 
-## Start Here
+## Main results
 
-- main.pdf: compiled manuscript.
-- main.tex: IEEEtran manuscript source.
-- RESPONSE_TO_REVIEWERS_v8.md: point-by-point response.
-- REPRODUCTION_GUIDE_v8.md: commands, environment assumptions, and artifact mapping.
-- EXPERIMENT_RESULTS_INDEX_v8.md: result-file index.
-- data/semantic_mpc_authoritative_runs_v8.csv: sole authoritative final 18-run Semantic MPC dataset.
-- supplement_v8_sanitized/data/revision_20260919/: new per-run and aggregate evidence.
-- supplement_v8_sanitized/source/: reviewer-facing source snapshot.
-- scripts/plot_paper_figures.py: reproducible manuscript figure renderer.
+- Fresh raw MPC sweep: 0/16 successes; mean final distance 0.3245 +/- 0.1085, sample SD.
+- Grounded diagnostic branches: 4/4 controller runs and 8/8 ablation runs; all 12 runs replaced 23/23 raw planner actions with the privileged feedback action.
+- Live semantic suite: 18 heterogeneous diagnostic runs; 3/18 at distance 0.05 and 18/18 at distance 0.08; mean 0.0641 +/- 0.0150.
+- Target-image matrix: 9 active trials over three targets and seeds 42--44; semantic selection and joint control each succeed in 8/9, with no pre-satisfied trial.
+- Event controls: natural re-query fires in 3/3 event-enabled runs and 0/3 no-event runs, but matched final distances are identical; this demonstrates trigger execution, not causal recovery benefit.
+- Visual-feedback boundary: the implemented detector/tracker path achieves 0/6, mean final distance 0.3160 +/- 0.1439.
 
-## Headline Results
+## Contents
 
-- Unmodified controller comparison: 0/4.
-- Unmodified parameter ablation: 0/8.
-- Grounded diagnostic branch: 23/23 raw actions replaced in every run.
-- Semantic MPC diagnostic suite: 18/18 at 0.08 and 3/18 at 0.05, with final distance 0.064119 +/- 0.015025 sample SD.
-- Target-image matrix: 8/9 semantic matches and 7/8 joint active successes.
-- Forced semantic-fault audit: 3/3 semantic repairs and 2/3 true-target successes.
-- Natural-event controls: matched final distances; no causal recovery benefit is claimed.
+- main.tex and main.pdf: revised manuscript source and compiled paper.
+- figures/: regenerated vector figures and visual assets used by the manuscript.
+- data/: primary portable CSV summaries and threshold table.
+- supplement_v9_sanitized/: source snapshots, revision CSVs, manifests, and controlled fault-audit data.
+- scripts/: import, plotting, and artifact-verification utilities.
+- RESPONSE_TO_REVIEWERS_v9.md: point-by-point response to the editor and reviewers.
+- REPRODUCTION_GUIDE_v9.md: offline verification and optional rerun instructions.
 
-## Reproducibility Boundary
+## Scope and limitations
 
-The included sanitized CSVs are sufficient to recompute and audit the manuscript aggregates. Full end-to-end execution additionally requires the Language-Table simulator, compatible Python dependencies, detector/tracker/video-prediction checkpoints obtained from their original distributions, and a separately configured compatible VLM backend.
+The package does not include credentials, private service configuration, raw online logs, video recordings, model checkpoints, or simulator redistribution. The manuscript identifies the online component as a GPT-5.5-based VLM accessed through an external Responses-compatible runtime/interface. The package reports the interface-level experiment outputs without claiming that the submitted artifact reproduces a proprietary model backend offline.
 
-The repository intentionally excludes API credentials, private gateway addresses, local absolute paths, virtual environments, raw service logs, and third-party model weights. Do not commit a local .env file. Expected checkpoint hashes and configuration paths are recorded in the manifests.
+Real-robot validation, broader task families, and a complete causal root-isolation ablation were not performed in this revision. These remain explicit limitations rather than implied successes. The natural event-control experiment also does not show a recovery advantage; the separate forced semantic-fault audit only shows that a deliberately injected semantic error can be repaired under the tested intervention.
 
-## Verify the Artifact
+## Verification
 
-Run from the repository root:
+From this directory, run:
 
     python scripts/verify_artifact.py
 
-The script recomputes the headline statistics, checks the target-image and semantic-fault counts, validates every public source-snapshot hash, rejects superseded conflicting files, and detects zero-byte data or source artifacts.
-
-## Citation
-
-Citation metadata is provided in CITATION.cff. Use release v1.0.4 when referring to the exact revision artifact.
-
-## Licensing Note
-
-No project-wide open-source license is asserted for this collected revision artifact. Third-party files and dependencies retain their original notices and licenses; no third-party model weights are redistributed.
+The verifier checks the authoritative counts and statistics, source-snapshot hashes, required figures, superseded-file removal, empty-file removal, and credential-like-string exclusion. It is a package-integrity check, not a replacement for rerunning online experiments.

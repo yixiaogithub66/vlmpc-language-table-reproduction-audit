@@ -1,4 +1,0 @@
-case,n,success_008,natural_requeries,cache_hits_unique,fresh_vlm_unique,strict_no_cache_unique,mean_final,min_final,max_final
-matched_event_instruction,3,3,"1,1,1",0,2,True,0.05870650957028071,0.03316491097211838,0.07868905365467072
-matched_no_event_instruction,3,3,"0,0,0",0,1,True,0.05870650957028071,0.03316491097211838,0.07868905365467072
-scene_forced_requery_audit,3,3,"1,0,0",0,"4,6",True,0.07335957884788513,0.06440256536006927,0.07805224508047104
