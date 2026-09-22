@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the portable v1.0.6 evidence package."""
+"""Verify the portable v1.0.7 evidence package."""
 from __future__ import annotations
 import csv, hashlib, json, re, statistics, sys
 from pathlib import Path
@@ -29,12 +29,17 @@ check(len(semantic) == 18, "semantic suite must contain 18 rows")
 check(sum(x <= .05 for x in sd) == 3 and sum(x <= .08 for x in sd) == 18, "semantic threshold counts mismatch")
 check(abs(statistics.mean(sd) - 0.0641187511177527) < 1e-12, "semantic mean mismatch")
 check(abs(statistics.stdev(sd) - 0.0150250791979494) < 1e-12, "semantic SD mismatch")
-check(sum(r.get("requested_selected_match") == "True" for r in semantic) == 17, "semantic request-selection match must be 17/18")
-check(sum(r.get("instruction_joint_success") == "True" for r in semantic) == 17, "instruction-level joint success must be 17/18")
-check(any(r["requested_target_object"] == "red moon" and r["selected_target_object"] == "blue moon" and r["requested_selected_match"] == "False" for r in semantic), "semantic mismatch audit row is missing")
+instruction_rows = [r for r in semantic if r.get("instruction_evaluable") == "True"]
+scene_rows = [r for r in semantic if r.get("request_type") == "scene_selection"]
+check(len(instruction_rows) == 17, "semantic instruction-evaluable subset must contain 17 rows")
+check(len(scene_rows) == 1, "semantic suite must contain one free scene-selection row")
+check(sum(r.get("requested_selected_match") == "True" for r in instruction_rows) == 17, "semantic request-selection match must be 17/17 among evaluable rows")
+check(sum(r.get("instruction_joint_success") == "True" for r in instruction_rows) == 17, "instruction-level joint success must be 17/17 among evaluable rows")
+check(all(r.get("requested_target_object", "") == "" and r.get("requested_selected_match", "") == "" and r.get("instruction_joint_success", "") == "" for r in scene_rows), "scene-selection row must be N/A for instruction metrics")
+check(sum(r.get("scene_selection_control_success") == "True" for r in scene_rows) == 1, "scene-selection control result must be 1/1")
 conds = read_csv("supplement_v9_sanitized/data/revision_20260922/semantic_mpc_condition_statistics_v9.csv")
 all_live = next((r for r in conds if r["condition"] == "all_live_runs"), None)
-check(all_live is not None and all_live["n"] == "18" and all_live["success_005"] == "3/18" and all_live["success_008"] == "18/18" and all_live["requested_selected_match"] == "17/18" and all_live["instruction_joint_success"] == "17/18", "semantic condition summary mismatch")
+check(all_live is not None and all_live["n"] == "18" and all_live["success_005"] == "3/18" and all_live["success_008"] == "18/18" and all_live["instruction_evaluable_n"] == "17" and all_live["scene_selection_n"] == "1" and all_live["requested_selected_match"] == "17/17" and all_live["instruction_joint_success"] == "17/17" and all_live["scene_selection_control_success"] == "1/1", "semantic condition summary mismatch")
 
 thresholds = read_csv("data/threshold_sensitivity_v9.csv")
 check(len(thresholds) == 18, "threshold table must contain 18 rows")
@@ -56,10 +61,14 @@ forced = [r for r in events if r["case"] == "scene_forced_requery_audit"]
 check(len(events) == 9 and len(no_event) == len(enabled) == len(forced) == 3, "event case sizes mismatch")
 check(sum(int(r["natural_event_requeries"]) > 0 for r in enabled) == 3 and sum(int(r["natural_event_requeries"]) > 0 for r in no_event) == 0, "event trigger counts mismatch")
 check(sum(int(r["cache_hits_in_log"]) for r in events) == 0, "event cache hits are nonzero")
+check(all(r.get("semantic_event_requery_window") == "4" and r.get("semantic_event_requery_min_progress") == "0.002" and r.get("semantic_event_requery_progress_units") == "world_distance" for r in events), "event controls do not record the corrected world-distance detector parameters")
 for seed in ("42", "43", "44"):
     a = next(r for r in no_event if r["seed"] == seed); b = next(r for r in enabled if r["seed"] == seed)
     check(a["final_target_world_distance"] == b["final_target_world_distance"], f"event final distance differs for seed {seed}")
-check(all(int(r["event_requeries"]) >= 2 for r in forced), "forced audit query count mismatch")
+check(all(r.get("forced_initial_requery") == "True" and int(r["event_requeries"]) >= 1 for r in forced), "forced audit query marker/count mismatch")
+event_stats = read_csv("supplement_v9_sanitized/data/revision_20260922/event_requery_statistics_v9.csv")
+check(len(event_stats) == 3, "event statistics must contain three separated conditions")
+check(all(r.get("semantic_event_requery_window") == "4" and r.get("semantic_event_requery_min_progress") == "0.002" and r.get("semantic_event_requery_progress_units") == "world_distance" for r in event_stats), "event statistics parameter metadata mismatch")
 
 fault = read_csv("supplement_v9_sanitized/data/revision_20260922/event_fault_recovery_runs_v9.csv")
 treat = [r for r in fault if r["case"] == "with_synthetic_requery"]
@@ -105,8 +114,8 @@ for path in ["data/semantic_mpc_authoritative_runs_v8.csv", "data/threshold_sens
     check(not (ROOT / path).exists(), f"superseded artifact still present: {path}")
 
 citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
-check("version: 1.0.6" in citation, "CITATION.cff version is not 1.0.6")
-check("releases/tag/v1.0.6" in citation, "CITATION.cff must point to the exact v1.0.6 release")
+check("version: 1.0.7" in citation, "CITATION.cff version is not 1.0.7")
+check("releases/tag/v1.0.7" in citation, "CITATION.cff must point to the exact v1.0.7 release")
 
 manifest_text = (ROOT / "FINAL_MANIFEST_v9.md").read_text(encoding="utf-8")
 marker = "## Complete tracked-file list\n"
@@ -136,8 +145,8 @@ if errors:
     sys.exit(1)
 print("ARTIFACT VERIFICATION PASSED")
 print("Raw MPC: 0/16, mean=0.324472, sample SD=0.108465")
-print("Semantic MPC: 3/18 at 0.05, 18/18 selected-target control at 0.08; 17/18 request-selection matches")
+print("Semantic MPC: 3/18 at 0.05, 18/18 selected-target control at 0.08; 17/17 instruction-evaluable rows, 1 scene-selection row N/A")
 print("Target image: 8/9 semantic, 8/9 joint, no pre-satisfied runs")
-print("Events: natural trigger 3/3 enabled, matched distances identical, cache hits 0")
+print("Events: natural trigger 3/3 enabled under window=4, min_progress=0.002 world distance; matched distances identical, cache hits 0")
 print("Visual feedback: 0/6, mean=0.316042, sample SD=0.143929")
 print(f"Source snapshot hashes verified: {len(manifest)}")

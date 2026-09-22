@@ -1,4 +1,4 @@
-condition,n,success_008,natural_requeries,mean_final_world_distance,sample_sd_final_world_distance,min_final,max_final,cache_hits,fresh_vlm_responses
-matched_no_event_instruction,3,3/3,0/3,0.058707,0.023266,0.033165,0.078689,0,3
-matched_event_instruction,3,3/3,3/3,0.058707,0.023266,0.033165,0.078689,0,6
-scene_forced_requery_audit,3,3/3,3/3,0.052108,0.015639,0.034506,0.064403,0,18
+condition,n,success_008,natural_requeries,mean_final_world_distance,sample_sd_final_world_distance,min_final,max_final,cache_hits,fresh_vlm_responses,semantic_event_requery_window,semantic_event_requery_min_progress,semantic_event_requery_progress_units
+matched_no_event_instruction,3,3/3,0/3,0.058707,0.023266,0.033165,0.078689,0,3,4,0.002,world_distance
+matched_event_instruction,3,3/3,3/3,0.058707,0.023266,0.033165,0.078689,0,6,4,0.002,world_distance
+scene_forced_requery_audit,3,3/3,1/3,0.046894,0.022134,0.033852,0.072450,0,14,4,0.002,world_distance

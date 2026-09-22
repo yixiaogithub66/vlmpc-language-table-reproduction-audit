@@ -68,6 +68,8 @@ class VLMPC:
         event_requery_window=3,
         event_requery_min_progress=1.0,
         event_requery_min_step=3,
+        semantic_event_requery_window=4,
+        semantic_event_requery_min_progress=0.002,
         audit_initial_target_object=None,
         audit_force_event_requery_step=-1,
     ):
@@ -234,8 +236,11 @@ class VLMPC:
         self._last_visual_action = None
         self._last_visual_obj_bbox = None
         self._last_visual_end_bbox = None
-        self.semantic_event_requery_window = 4
-        self.semantic_event_requery_min_progress = 0.002
+        # Semantic progress is measured as a decrease in world-coordinate
+        # object-to-goal distance. Keep these controls separate from the
+        # original planner's event-detector parameters.
+        self.semantic_event_requery_window = max(1, int(semantic_event_requery_window))
+        self.semantic_event_requery_min_progress = float(semantic_event_requery_min_progress)
         self.semantic_event_requery_distance_floor = self.semantic_success_distance * 1.5
 
         self.metrics = {

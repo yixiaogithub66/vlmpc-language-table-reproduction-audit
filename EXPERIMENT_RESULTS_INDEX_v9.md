@@ -1,4 +1,4 @@
-# Experiment Results Index v1.0.6
+# Experiment Results Index v1.0.7
 
 All primary numbers in the revised manuscript are traceable to the files below. The project threshold is final target world distance <= 0.08. The 0.05 threshold is reported as an auxiliary stricter threshold.
 
@@ -25,7 +25,7 @@ Sources: data/semantic_mpc_live_runs_v9.csv and supplement_v9_sanitized/data/rev
 - 18 heterogeneous diagnostic runs, not 18 independent random seeds.
 - Overall selected-target control distance: mean 0.064119, sample SD 0.015025; 3/18 at 0.05 and 18/18 at 0.08.
 - Seed-only subset: n=3 for seeds 42--44; it is reported separately from the heterogeneous aggregate.
-- The selected target is the target used for the corresponding diagnostic condition. The portable CSV records 17/18 requested-to-selected matches and 17/18 instruction-level joint successes. The 18/18 value is therefore not silently relabeled as end-to-end instruction success.
+- The selected target is the target used for the corresponding diagnostic condition. Seventeen rows have an explicit requested target; all 17/17 preserve requested-to-selected identity and satisfy the instruction-level joint criterion. One free scene-selection row has no requested target and is N/A for instruction metrics; its selected-target control result is 1/1. The 18/18 value is therefore not silently relabeled as end-to-end instruction success.
 
 ## Robustness-edge boundary audit
 
@@ -53,6 +53,7 @@ Source: supplement_v9_sanitized/data/revision_20260922/event_requery_controls_v9
 - Natural re-query: 0/3 no-event and 3/3 event-enabled.
 - Cache hits: 0 across all nine rows.
 - Matched no-event and event-enabled final distances are identical seed by seed.
+- Semantic event detector parameters: window 4; minimum progress 0.002 in world-distance units.
 - Forced-scene rows include the explicitly forced audit re-query and a natural event; they are not pooled with the matched natural-event comparison.
 
 The separate semantic-fault audit is in event_fault_recovery_runs_v9.csv: treatment repairs the injected semantic state in 3/3 and reaches the independent true target in 2/3; the no-requery control reaches 0/3. This is an intervention audit, not evidence of natural-event causal benefit.

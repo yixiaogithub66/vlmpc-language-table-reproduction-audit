@@ -678,6 +678,9 @@ def collect_run_metrics(args, vlmpc, loop_metrics, total_runtime_seconds):
         "event_requery_window": args.event_requery_window,
         "event_requery_min_progress": args.event_requery_min_progress,
         "event_requery_min_step": args.event_requery_min_step,
+        "semantic_event_requery_window": args.semantic_event_requery_window,
+        "semantic_event_requery_min_progress": args.semantic_event_requery_min_progress,
+        "semantic_event_requery_progress_units": "world_distance",
         "runtime_seconds_total": float(total_runtime_seconds),
         "overall_success": loop_metrics["overall_success"],
         "terminated_early": loop_metrics["terminated_early"],
@@ -946,6 +949,18 @@ def build_arg_parser():
     parser.add_argument("--event_requery_window", type=int, default=3)
     parser.add_argument("--event_requery_min_progress", type=float, default=1.0)
     parser.add_argument("--event_requery_min_step", type=int, default=3)
+    parser.add_argument(
+        "--semantic_event_requery_window",
+        type=int,
+        default=4,
+        help="World-coordinate progress window for the semantic reactive controller.",
+    )
+    parser.add_argument(
+        "--semantic_event_requery_min_progress",
+        type=float,
+        default=0.002,
+        help="Minimum world-coordinate distance decrease per step for semantic stagnation detection.",
+    )
     parser.add_argument("--plan_freq", type=int, default=5)
     parser.add_argument("--init_mean", type=float, default=0.01)
     parser.add_argument("--zoom", type=float, default=0.02)
@@ -1063,6 +1078,8 @@ def main(args):
         event_requery_window=args.event_requery_window,
         event_requery_min_progress=args.event_requery_min_progress,
         event_requery_min_step=args.event_requery_min_step,
+        semantic_event_requery_window=args.semantic_event_requery_window,
+        semantic_event_requery_min_progress=args.semantic_event_requery_min_progress,
         audit_initial_target_object=args.audit_initial_target_object,
         audit_force_event_requery_step=args.audit_force_event_requery_step,
     )

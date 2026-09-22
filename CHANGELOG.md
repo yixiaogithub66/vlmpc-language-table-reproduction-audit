@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.7
+
+- Corrected the semantic-suite denominator: the 17 explicit-target rows are reported as 17/17 for request matching and instruction-level joint success; the free scene-selection row is marked N/A for instruction metrics and retained as a separate 1/1 selected-target control.
+- Re-ran the matched event controls with the semantic detector expressed in world-distance units (window=4, min_progress=0.002) and recorded the effective parameters in every event row and aggregate.
+- Updated the manuscript, response letter, figures, release metadata, source provenance, and verifier to use the corrected definitions and v1.0.7 release binding.
+
 ## v1.0.6
 
 - Bound `CITATION.cff` and the manuscript availability statement to the exact immutable v1.0.6 release; v1.0.5 remains unchanged for provenance.

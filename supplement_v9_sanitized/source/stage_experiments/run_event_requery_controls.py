@@ -131,9 +131,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--success_distance_world", type=float, default=0.08)
     parser.add_argument("--controller_variant", type=str, default="semantic_mpc")
     parser.add_argument("--feedback_source", type=str, default="oracle", choices=["oracle", "visual"])
-    parser.add_argument("--event_requery_window", type=int, default=2)
-    parser.add_argument("--event_requery_min_progress", type=float, default=25.0)
+    parser.add_argument("--event_requery_window", type=int, default=3)
+    parser.add_argument("--event_requery_min_progress", type=float, default=1.0)
     parser.add_argument("--event_requery_min_step", type=int, default=3)
+    parser.add_argument("--semantic_event_requery_window", type=int, default=4)
+    parser.add_argument("--semantic_event_requery_min_progress", type=float, default=0.002)
     parser.add_argument("--log_root", type=str, default=str(PROJECT_ROOT / "logs"))
     parser.add_argument(
         "--result_root",
@@ -221,6 +223,10 @@ def build_command(args: argparse.Namespace, case: dict[str, object]) -> list[str
         str(args.event_requery_min_progress),
         "--event_requery_min_step",
         str(args.event_requery_min_step),
+        "--semantic_event_requery_window",
+        str(args.semantic_event_requery_window),
+        "--semantic_event_requery_min_progress",
+        str(args.semantic_event_requery_min_progress),
     ]
     if args.controller_variant != "semantic_mpc":
         command.append("--grounded_original_mpc")
@@ -288,6 +294,9 @@ def row_from_result(result: dict[str, object], args: argparse.Namespace) -> dict
         "event_requery_window": args.event_requery_window,
         "event_requery_min_progress": args.event_requery_min_progress,
         "event_requery_min_step": args.event_requery_min_step,
+        "semantic_event_requery_window": args.semantic_event_requery_window,
+        "semantic_event_requery_min_progress": args.semantic_event_requery_min_progress,
+        "semantic_event_requery_progress_units": "world_distance",
         "overall_success": metrics.get("overall_success"),
         "final_target_world_distance": metrics.get("final_target_world_distance"),
         "target_world_distance_delta": metrics.get("target_world_distance_delta"),
@@ -321,7 +330,7 @@ def write_outputs(result_dir: Path, results: list[dict[str, object]], args: argp
     lines = [
         "# Event Re-query Control Supplement",
         "",
-        "This supplement compares matched semantic-MPC oracle runs with and without the natural event trigger. The forced case, when enabled, is an initial scene-selection audit rather than a matched recovery ablation.",
+        "This supplement compares matched semantic-MPC oracle runs with and without the natural event trigger. The semantic detector uses an explicit world-coordinate progress threshold and window. The forced case, when enabled, is an initial scene-selection audit rather than a matched recovery ablation.",
         "",
         "| case | event enabled | natural re-query | success | final world distance | reasons |",
         "| --- | ---: | ---: | ---: | ---: | --- |",
@@ -348,6 +357,9 @@ def write_outputs(result_dir: Path, results: list[dict[str, object]], args: argp
                 "openai_model": args.openai_model if args.vlm_backend == "openai" else None,
                 "openai_wire_api": args.openai_wire_api if args.vlm_backend == "openai" else None,
                 "vlm_cache_dir": args.vlm_cache_dir,
+                "semantic_event_requery_window": args.semantic_event_requery_window,
+                "semantic_event_requery_min_progress": args.semantic_event_requery_min_progress,
+                "semantic_event_requery_progress_units": "world_distance",
                 "cases": [result.get("case") for result in results],
             },
             indent=2,

@@ -1,4 +1,4 @@
-# Final Manifest v1.0.6
+# Final Manifest v1.0.7
 
 ## Manuscript
 

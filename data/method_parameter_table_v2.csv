@@ -19,7 +19,7 @@ Feedback,contact offset / clearance,0.06 / 0.12 world units,"main.py, vlmpc.py"
 Feedback,move step / push step,0.06 / 0.075,"main.py, vlmpc.py"
 Feedback,contact tolerance,0.018,vlmpc.py
 Feedback,push correction beta,0.45 in push phase,vlmpc.py
-Original event trigger,matched-control thresholds,"window 2, min_progress 25.0, min_step 3",event_requery_controls.csv
+Semantic event trigger,matched-control thresholds,"window 4, min_progress 0.002 world-distance units, min_step 3",event_requery_controls_v9.csv
 Original event trigger,default thresholds,"window 3, min_progress 1.0, min_step 3",main.py
 Semantic event trigger,stagnation window / min progress,4 / 0.002,vlmpc.py
 Semantic event trigger,distance floor,1.5 x success distance,vlmpc.py

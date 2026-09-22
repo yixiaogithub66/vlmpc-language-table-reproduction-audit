@@ -259,7 +259,11 @@ def run_case(args, case):
     command.extend(["--tag", tag, "--log_root", str(log_root)])
 
     mode = case.get("mode", "fixed")
-    target = case.get("target_object", args.target_object)
+    # Scene selection has no requested object. Do not backfill the suite
+    # default, otherwise a free-selection run becomes a fake instruction row.
+    target = case.get("target_object")
+    if target is None and mode != "vlm_scene":
+        target = args.target_object
     if mode == "fixed":
         command.extend(["--target_object", target])
     elif mode == "instruction":
@@ -307,14 +311,27 @@ def run_case(args, case):
 def result_row(result):
     metrics = result.get("metrics") or {}
     params = result.get("semantic_params") or {}
+    mode = result.get("mode")
+    instruction_evaluable = mode != "vlm_scene"
+    request_type = {
+        "fixed": "fixed_target",
+        "instruction": "language_instruction",
+        "target_image": "target_image",
+        "vlm_scene": "scene_selection",
+    }.get(mode, "diagnostic")
+    selected_target = metrics.get("current_interactive_object")
+    evaluation_target = metrics.get("evaluated_target_object") or selected_target
     return {
         "status": result.get("status"),
         "suite": result.get("suite"),
         "name": result.get("name"),
         "mode": result.get("mode"),
         "seed": result.get("seed"),
-        "requested_target_object": result.get("target_object"),
-        "selected_target_object": metrics.get("current_interactive_object"),
+        "request_type": request_type,
+        "instruction_evaluable": instruction_evaluable,
+        "requested_target_object": result.get("target_object") if instruction_evaluable else "",
+        "selected_target_object": selected_target,
+        "evaluation_target_object": evaluation_target,
         "overall_success": metrics.get("overall_success"),
         "target_success": metrics.get("target_success"),
         "initial_target_world_distance": metrics.get("initial_target_world_distance"),

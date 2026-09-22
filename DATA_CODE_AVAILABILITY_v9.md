@@ -1,10 +1,10 @@
 # Data and Code Availability
 
-The v1.0.6 revision artifact is provided as a portable, sanitized package alongside the manuscript. The exact release is:
+The v1.0.7 revision artifact is provided as a portable, sanitized package alongside the manuscript. The exact release is:
 
 https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit
 
-https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit/releases/tag/v1.0.6
+https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit/releases/tag/v1.0.7
 
 The package contains:
 
@@ -31,7 +31,10 @@ The primary evidence files are:
 The scripts reproduce the reported aggregates and figures from the portable CSVs. Running the online experiments again requires the original simulator, local dependencies, and an independently configured external VLM service; those requirements are documented without publishing secrets.
 
 The live semantic control count is explicitly conditional on the selected
-target: 18/18 rows satisfy the selected-target distance tolerance, while
-17/18 preserve the requested-to-selected target identity and 17/18 satisfy the
-corresponding instruction-level joint criterion. The robustness-edge audit is
-detector-level boundary evidence, not a closed-loop or real-camera benchmark.
+target: 18/18 rows satisfy the selected-target distance tolerance. Among the
+17 rows with an explicit requested target, 17/17 preserve the
+requested-to-selected identity and satisfy the corresponding instruction-level
+joint criterion; one free scene-selection row is reported separately as 1/1
+selected-target control and is N/A for instruction metrics. The robustness-edge
+audit is detector-level boundary evidence, not a closed-loop or real-camera
+benchmark.
