@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Verify the portable v1.0.5 evidence package."""
+"""Verify the portable v1.0.6 evidence package."""
 from __future__ import annotations
-import csv, hashlib, re, statistics, sys
+import csv, hashlib, json, re, statistics, sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 errors: list[str] = []
@@ -29,9 +29,12 @@ check(len(semantic) == 18, "semantic suite must contain 18 rows")
 check(sum(x <= .05 for x in sd) == 3 and sum(x <= .08 for x in sd) == 18, "semantic threshold counts mismatch")
 check(abs(statistics.mean(sd) - 0.0641187511177527) < 1e-12, "semantic mean mismatch")
 check(abs(statistics.stdev(sd) - 0.0150250791979494) < 1e-12, "semantic SD mismatch")
+check(sum(r.get("requested_selected_match") == "True" for r in semantic) == 17, "semantic request-selection match must be 17/18")
+check(sum(r.get("instruction_joint_success") == "True" for r in semantic) == 17, "instruction-level joint success must be 17/18")
+check(any(r["requested_target_object"] == "red moon" and r["selected_target_object"] == "blue moon" and r["requested_selected_match"] == "False" for r in semantic), "semantic mismatch audit row is missing")
 conds = read_csv("supplement_v9_sanitized/data/revision_20260922/semantic_mpc_condition_statistics_v9.csv")
 all_live = next((r for r in conds if r["condition"] == "all_live_runs"), None)
-check(all_live is not None and all_live["n"] == "18" and all_live["success_005"] == "3/18" and all_live["success_008"] == "18/18", "semantic condition summary mismatch")
+check(all_live is not None and all_live["n"] == "18" and all_live["success_005"] == "3/18" and all_live["success_008"] == "18/18" and all_live["requested_selected_match"] == "17/18" and all_live["instruction_joint_success"] == "17/18", "semantic condition summary mismatch")
 
 thresholds = read_csv("data/threshold_sensitivity_v9.csv")
 check(len(thresholds) == 18, "threshold table must contain 18 rows")
@@ -70,6 +73,24 @@ check(len(visual) == 6 and sum(r["overall_success"] == "True" for r in visual) =
 check(abs(statistics.mean(vd) - 0.31604154283801716) < 1e-12, "visual mean mismatch")
 check(abs(statistics.stdev(vd) - 0.14392881447322622) < 1e-12, "visual SD mismatch")
 
+robust = read_csv("data/robustness_edge_audit_v9.csv")
+check(len(robust) == 7, "robustness edge audit must contain 7 rows")
+check(sum(r["status"] == "ok" for r in robust) == 4, "robustness detector cases must be 4/4")
+check(sum(r["status"] == "safe_reject" for r in robust) == 3, "robustness unknown-target rejects must be 3/3")
+for row in robust:
+    image = row.get("portable_image_path", "")
+    if image:
+        check((ROOT / image).is_file(), f"missing robustness input image: {image}")
+robust_manifest_path = ROOT / "supplement_v9_sanitized/data/robustness_edge_audit/manifest_v9.json"
+check(robust_manifest_path.is_file(), "missing robustness audit manifest")
+if robust_manifest_path.is_file():
+    robust_manifest = json.loads(robust_manifest_path.read_text(encoding="utf-8"))
+    for image in robust_manifest.get("portable_input_images", []):
+        image_path = robust_manifest_path.parent / image["path"]
+        check(image_path.is_file(), f"missing robustness manifest image: {image['path']}")
+        if image_path.is_file():
+            check(hashlib.sha256(image_path.read_bytes()).hexdigest() == image["sha256"], f"robustness image hash mismatch: {image['path']}")
+
 manifest = read_csv("supplement_v9_sanitized/data/code_manifest_v9.csv")
 for row in manifest:
     p = ROOT / row["relative_path"]
@@ -82,8 +103,30 @@ required = ["figures/final_distance_distribution_v9.pdf", "figures/threshold_sen
 for path in required: check((ROOT / path).is_file(), f"missing artifact: {path}")
 for path in ["data/semantic_mpc_authoritative_runs_v8.csv", "data/threshold_sensitivity_v8.csv", "data/event_requery_controls_20260620_180646.csv", "data/target_image_selection_audit_20260620_164822.csv", "supplement_v8_sanitized", "supplement_v9_sanitized/data/revision_20260919", "figures/final_distance_distribution_v5.pdf", "figures/threshold_sensitivity_v5.pdf", "figures/target_event_audit_v5.pdf", "figures/method_pipeline_v7.pdf"]:
     check(not (ROOT / path).exists(), f"superseded artifact still present: {path}")
+
+citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
+check("version: 1.0.6" in citation, "CITATION.cff version is not 1.0.6")
+check("releases/tag/v1.0.6" in citation, "CITATION.cff must point to the exact v1.0.6 release")
+
+manifest_text = (ROOT / "FINAL_MANIFEST_v9.md").read_text(encoding="utf-8")
+marker = "## Complete tracked-file list\n"
+check(marker in manifest_text, "final manifest lacks complete tracked-file list")
+if marker in manifest_text:
+    listed = []
+    for line in manifest_text.split(marker, 1)[1].split("\n## ", 1)[0].splitlines():
+        if line.startswith("- "):
+            listed.append(line[2:].strip())
+    ignored_suffixes = {".aux", ".bbl", ".blg", ".fdb_latexmk", ".fls", ".log", ".out", ".synctex.gz"}
+    actual = []
+    for p in ROOT.rglob("*"):
+        if not p.is_file() or ".git" in p.parts or "tmp" in p.parts or "__pycache__" in p.parts:
+            continue
+        if any(str(p).lower().endswith(s) for s in ignored_suffixes):
+            continue
+        actual.append(p.relative_to(ROOT).as_posix())
+    check(sorted(listed) == sorted(actual), "final manifest does not match the portable file set")
 for p in ROOT.rglob("*"):
-    if p.is_file() and p.suffix.lower() in {".csv", ".json", ".md", ".py", ".tex"}:
+    if p.is_file() and ".git" not in p.parts and "tmp" not in p.parts and "__pycache__" not in p.parts and p.suffix.lower() in {".csv", ".json", ".md", ".py", ".tex", ".cff"}:
         check(p.stat().st_size > 0, f"zero-byte artifact: {p.relative_to(ROOT)}")
         check(not re.search(r"sk-[A-Za-z0-9]{20,}", p.read_text(encoding="utf-8", errors="ignore")), f"credential-like string: {p.relative_to(ROOT)}")
 
@@ -93,7 +136,7 @@ if errors:
     sys.exit(1)
 print("ARTIFACT VERIFICATION PASSED")
 print("Raw MPC: 0/16, mean=0.324472, sample SD=0.108465")
-print("Semantic MPC: 3/18 at 0.05, 18/18 at 0.08")
+print("Semantic MPC: 3/18 at 0.05, 18/18 selected-target control at 0.08; 17/18 request-selection matches")
 print("Target image: 8/9 semantic, 8/9 joint, no pre-satisfied runs")
 print("Events: natural trigger 3/3 enabled, matched distances identical, cache hits 0")
 print("Visual feedback: 0/6, mean=0.316042, sample SD=0.143929")

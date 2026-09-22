@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.6
+
+- Bound `CITATION.cff` and the manuscript availability statement to the exact immutable v1.0.6 release; v1.0.5 remains unchanged for provenance.
+- Added the sanitized robustness-edge CSV, four portable input images, provenance note, manifest entries, and verifier checks.
+- Added explicit requested-to-selected target matching and instruction-level joint-success fields to the semantic run table.
+- Reworded the manuscript and response letter to distinguish selected-target control success from end-to-end instruction success, and to mark independent-seed and natural re-query causal gaps as unresolved.
+- Expanded the final manifest to cover the complete portable file set.
+
 ## v1.0.5
 
 - Added the fresh four-variant, four-seed raw-MPC sweep and the complete revision evidence index.

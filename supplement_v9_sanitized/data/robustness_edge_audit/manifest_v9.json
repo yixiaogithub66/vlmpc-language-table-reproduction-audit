@@ -1,0 +1,29 @@
+{
+  "audit_id": "archived_robustness_edge_audit_20260606_203525",
+  "audit_type": "detector_level_boundary_check",
+  "target_object": "red moon",
+  "portable_input_images": [
+    {
+      "case": "original",
+      "path": "original.png",
+      "sha256": "d47da69471e0349187ad0c222398f43a7b5b1543278aebfecd96aa58c9b700c5"
+    },
+    {
+      "case": "occluded_target",
+      "path": "occluded_target.png",
+      "sha256": "08378c34f7e61fe1400a067efaf96edb278d28908d9a12409061ce58ae93ad8b"
+    },
+    {
+      "case": "viewpoint_proxy",
+      "path": "viewpoint_proxy.png",
+      "sha256": "4b164ed1d599ffed5401e69184b527efd164130289973b11f2fd64b61ece4482"
+    },
+    {
+      "case": "brightness_shift",
+      "path": "brightness_shift.png",
+      "sha256": "f38c63260560a8c019bc37879057eddf8998bdd971b92427d698ee274a52a637"
+    }
+  ],
+  "unsupported_targets": ["purple pole", "green moon", "unknown target"],
+  "scope_note": "This is a small detector-level audit, not a closed-loop robustness benchmark or real-camera validation."
+}

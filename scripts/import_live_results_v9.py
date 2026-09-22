@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import shutil
 import statistics
 from pathlib import Path
 
@@ -16,6 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 SUPPLEMENT = ROOT / "supplement_v9_sanitized" / "data" / "revision_20260922"
+ROBUSTNESS_OUTPUT = ROOT / "supplement_v9_sanitized" / "data" / "robustness_edge_audit"
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -33,6 +35,10 @@ def write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, object]]) 
 
 def truth(value: str) -> bool:
     return value.strip().lower() == "true"
+
+
+def normalized_target(value: str) -> str:
+    return " ".join(value.strip().lower().split())
 
 
 def main() -> None:
@@ -55,14 +61,35 @@ def main() -> None:
         "semantic_contact_offset", "semantic_clearance", "semantic_move_step",
         "semantic_push_step", "error",
     ]
-    write_csv(DATA / "semantic_mpc_live_runs_v9.csv", opening_fields, opening)
+    semantic_rows: list[dict[str, object]] = []
+    for row in opening:
+        exported = dict(row)
+        requested = normalized_target(row.get("requested_target_object", ""))
+        selected = normalized_target(row.get("selected_target_object", ""))
+        if requested and selected:
+            matches = requested == selected
+            exported["requested_selected_match"] = str(matches)
+            exported["instruction_joint_success"] = str(matches and truth(row["target_success"]))
+        else:
+            exported["requested_selected_match"] = ""
+            exported["instruction_joint_success"] = ""
+        exported["control_success_reference"] = "selected_target"
+        semantic_rows.append(exported)
+    semantic_fields = opening_fields + [
+        "requested_selected_match",
+        "instruction_joint_success",
+        "control_success_reference",
+    ]
+    write_csv(DATA / "semantic_mpc_live_runs_v9.csv", semantic_fields, semantic_rows)
 
     conditions: list[dict[str, object]] = []
     for condition in ("input_forms", "multi_target", "multi_seed", "semantic_ablation"):
+        condition_rows = [
+            row for row in semantic_rows if row["suite"] == condition
+        ]
         values = [
             float(row["final_target_world_distance"])
-            for row in opening
-            if row["suite"] == condition
+            for row in condition_rows
         ]
         conditions.append(
             {
@@ -72,6 +99,8 @@ def main() -> None:
                 "sample_sd_final_world_distance": f"{statistics.stdev(values):.6f}",
                 "success_005": f"{sum(value <= 0.05 for value in values)}/{len(values)}",
                 "success_008": f"{sum(value <= 0.08 for value in values)}/{len(values)}",
+                "requested_selected_match": f"{sum(row['requested_selected_match'] == 'True' for row in condition_rows)}/{len(condition_rows)}",
+                "instruction_joint_success": f"{sum(row['instruction_joint_success'] == 'True' for row in condition_rows)}/{len(condition_rows)}",
             }
         )
     values = [float(row["final_target_world_distance"]) for row in opening]
@@ -83,11 +112,17 @@ def main() -> None:
             "sample_sd_final_world_distance": f"{statistics.stdev(values):.6f}",
             "success_005": f"{sum(value <= 0.05 for value in values)}/{len(values)}",
             "success_008": f"{sum(value <= 0.08 for value in values)}/{len(values)}",
+            "requested_selected_match": f"{sum(row['requested_selected_match'] == 'True' for row in semantic_rows)}/{len(semantic_rows)}",
+            "instruction_joint_success": f"{sum(row['instruction_joint_success'] == 'True' for row in semantic_rows)}/{len(semantic_rows)}",
         }
     )
     write_csv(
         SUPPLEMENT / "semantic_mpc_condition_statistics_v9.csv",
-        list(conditions[0]),
+        [
+            "condition", "n", "mean_final_world_distance",
+            "sample_sd_final_world_distance", "success_005", "success_008",
+            "requested_selected_match", "instruction_joint_success",
+        ],
         conditions,
     )
 
@@ -272,6 +307,37 @@ def main() -> None:
         ["suite", "threshold", "success", "success_rate", "authoritative_source"],
         threshold_rows,
     )
+
+    # Export the archived detector-level robustness audit without leaking the
+    # original machine-local paths.  The four perturbation images are small,
+    # static inputs and are copied into the portable supplement so each CSV
+    # image reference resolves inside the release artifact.
+    robustness_source_dir = source / "robustness_edge_audit" / "20260606_203525"
+    robustness_rows = read_csv(robustness_source_dir / "robustness_edge_audit.csv")
+    ROBUSTNESS_OUTPUT.mkdir(parents=True, exist_ok=True)
+    robustness_export: list[dict[str, object]] = []
+    for row in robustness_rows:
+        exported = dict(row)
+        image_name = Path(row.get("image_path", "")).name if row.get("image_path") else ""
+        if image_name:
+            source_image = robustness_source_dir / image_name
+            destination = ROBUSTNESS_OUTPUT / image_name
+            if not source_image.is_file():
+                raise FileNotFoundError(source_image)
+            shutil.copy2(source_image, destination)
+            exported["portable_image_path"] = (
+                f"supplement_v9_sanitized/data/robustness_edge_audit/{image_name}"
+            )
+        else:
+            exported["portable_image_path"] = ""
+        exported["source_record"] = "archived_robustness_edge_audit_20260606_203525"
+        exported.pop("image_path", None)
+        robustness_export.append(exported)
+    robustness_fields = [
+        "case", "status", "target_object", "target_detected", "target_confidence",
+        "visible_objects", "portable_image_path", "interpretation", "source_record",
+    ]
+    write_csv(DATA / "robustness_edge_audit_v9.csv", robustness_fields, robustness_export)
 
     print(f"Imported {len(opening)} semantic, {len(target_runs)} target-image, "
           f"{len(events)} event, and {len(visual)} visual-feedback rows.")

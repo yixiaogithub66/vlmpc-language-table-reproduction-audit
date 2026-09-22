@@ -1,4 +1,4 @@
-# Reproduction Guide v1.0.5
+# Reproduction Guide v1.0.6
 
 ## 1. Offline integrity check
 
@@ -6,7 +6,7 @@ From the package root:
 
     python scripts/verify_artifact.py
 
-The expected result is ARTIFACT VERIFICATION PASSED. The check recomputes counts, means, sample standard deviations, threshold counts, event-control pairing, target-image outcomes, visual-feedback outcomes, source hashes, required figures, and removal of superseded artifacts.
+The expected result is ARTIFACT VERIFICATION PASSED. The check recomputes counts, means, sample standard deviations, threshold counts, request/selection success scope, event-control pairing, target-image outcomes, visual-feedback outcomes, robustness-edge rows and input paths, source hashes, required figures, exact release binding, complete manifest coverage, and removal of superseded artifacts.
 
 ## 2. Regenerate portable summaries
 
@@ -14,7 +14,7 @@ The import utility accepts the local root containing the dated experiment-output
 
     python scripts/import_live_results_v9.py --source-root <stage_experiments>
 
-The utility copies only sanitized run-level fields and writes the v9 CSVs. It does not copy credentials, raw transcripts, private URLs, or machine-local source paths.
+The utility copies only sanitized run-level fields and writes the v9 CSVs, including `data/robustness_edge_audit_v9.csv` and its four portable input images. It does not copy credentials, raw transcripts, private URLs, or machine-local source paths.
 
 ## 3. Regenerate figures
 
@@ -39,4 +39,4 @@ A fresh online rerun requires the original simulator, dependencies, image assets
 
 ## 6. Provenance
 
-The source snapshot manifest records public-file SHA-256 values. main.py is explicitly documented as a sanitized derivative because its drive-local dependency fallback was replaced with an environment-variable/local fallback. The controller logic and reported computations are unchanged by that packaging edit.
+The source snapshot manifest records public-file SHA-256 values. main.py is explicitly documented as a sanitized derivative because its drive-local dependency fallback was replaced with an environment-variable/local fallback. The controller logic and reported computations are unchanged by that packaging edit. The exact public package is bound to the immutable `v1.0.6` release in `CITATION.cff`.

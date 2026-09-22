@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the manuscript figures from the v1.0.5 evidence files.
+"""Render the manuscript figures from the v1.0.6 evidence files.
 
 The script intentionally reads the authoritative CSVs rather than embedding
 summary values in plotting code.  It produces figures at approximately their
@@ -363,7 +363,7 @@ def main() -> None:
     plot_event_audit()
     plot_method_pipeline()
     plot_qualitative_frames()
-    print("Rendered v1.0.5 manuscript figures from live and archived CSVs.")
+    print("Rendered v1.0.6 manuscript figures from live and archived CSVs.")
 
 
 if __name__ == "__main__":

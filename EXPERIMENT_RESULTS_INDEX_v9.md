@@ -1,4 +1,4 @@
-# Experiment Results Index v1.0.5
+# Experiment Results Index v1.0.6
 
 All primary numbers in the revised manuscript are traceable to the files below. The project threshold is final target world distance <= 0.08. The 0.05 threshold is reported as an auxiliary stricter threshold.
 
@@ -23,9 +23,17 @@ These rows preserve earlier grounded and parameter-ablation diagnostics. They ar
 Sources: data/semantic_mpc_live_runs_v9.csv and supplement_v9_sanitized/data/revision_20260922/semantic_mpc_condition_statistics_v9.csv
 
 - 18 heterogeneous diagnostic runs, not 18 independent random seeds.
-- Overall: mean 0.064119, sample SD 0.015025; 3/18 at 0.05 and 18/18 at 0.08.
+- Overall selected-target control distance: mean 0.064119, sample SD 0.015025; 3/18 at 0.05 and 18/18 at 0.08.
 - Seed-only subset: n=3 for seeds 42--44; it is reported separately from the heterogeneous aggregate.
-- The selected target is the target used for the corresponding diagnostic condition. A language request that is intentionally evaluated through a selected scene target is not silently relabeled as end-to-end instruction success.
+- The selected target is the target used for the corresponding diagnostic condition. The portable CSV records 17/18 requested-to-selected matches and 17/18 instruction-level joint successes. The 18/18 value is therefore not silently relabeled as end-to-end instruction success.
+
+## Robustness-edge boundary audit
+
+Sources: data/robustness_edge_audit_v9.csv and supplement_v9_sanitized/data/robustness_edge_audit/
+
+- Four detector-level cases retain the red-moon detection under the tested occlusion, viewpoint-proxy, and brightness-shift inputs.
+- Three unsupported target names are safely rejected by canonicalization.
+- The four input images are included in the supplement. This is a small detector-level boundary audit, not a closed-loop robustness benchmark or real-camera validation.
 
 ## Target-image evidence
 
