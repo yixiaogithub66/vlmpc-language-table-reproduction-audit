@@ -1,0 +1,7 @@
+status,seed,target_object,selected_target_object,overall_success,target_success,initial_target_world_distance,final_target_world_distance,target_world_distance_delta,success_distance_world,num_steps_executed,runtime_seconds_total,semantic_policy_calls,feedback_source,controller_variant,run_family
+ok,45,red moon,red moon,True,True,0.2150963544845581,0.07378770411014557,0.14130865037441254,0.08,7,9.349687576293945,7,oracle,semantic_mpc,fixed_target_seed_repeat
+ok,46,red moon,red moon,True,True,0.4355698525905609,0.07615236192941666,0.35941749066114426,0.08,30,24.885271787643433,30,oracle,semantic_mpc,fixed_target_seed_repeat
+ok,47,red moon,red moon,True,True,0.28912243247032166,0.057818058878183365,0.2313043735921383,0.08,19,17.224262952804565,19,oracle,semantic_mpc,fixed_target_seed_repeat
+ok,48,red moon,red moon,True,True,0.4131946563720703,0.023848826065659523,0.3893458303064108,0.08,40,30.399447202682495,40,oracle,semantic_mpc,fixed_target_seed_repeat
+ok,49,red moon,red moon,True,True,0.39334455132484436,0.07908798009157181,0.31425657123327255,0.08,22,19.340553283691406,22,oracle,semantic_mpc,fixed_target_seed_repeat
+ok,50,red moon,red moon,True,True,0.09734757989645004,0.05675067752599716,0.04059690237045288,0.08,7,9.536504745483398,7,oracle,semantic_mpc,fixed_target_seed_repeat

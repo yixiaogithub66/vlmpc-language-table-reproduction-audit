@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the portable v1.0.7 evidence package."""
+"""Verify the portable v1.0.8 evidence package."""
 from __future__ import annotations
 import csv, hashlib, json, re, statistics, sys
 from pathlib import Path
@@ -30,16 +30,27 @@ check(sum(x <= .05 for x in sd) == 3 and sum(x <= .08 for x in sd) == 18, "seman
 check(abs(statistics.mean(sd) - 0.0641187511177527) < 1e-12, "semantic mean mismatch")
 check(abs(statistics.stdev(sd) - 0.0150250791979494) < 1e-12, "semantic SD mismatch")
 instruction_rows = [r for r in semantic if r.get("instruction_evaluable") == "True"]
+fixed_rows = [r for r in semantic if r.get("evaluation_scope") == "fixed_target_control"]
+target_image_rows = [r for r in semantic if r.get("evaluation_scope") == "target_image_selected_target_control"]
 scene_rows = [r for r in semantic if r.get("request_type") == "scene_selection"]
-check(len(instruction_rows) == 17, "semantic instruction-evaluable subset must contain 17 rows")
+check(len(instruction_rows) == 1, "semantic instruction-evaluable subset must contain exactly the language-instruction row")
+check(len(fixed_rows) == 15, "semantic fixed-target control subset must contain 15 rows")
+check(len(target_image_rows) == 1, "semantic target-image control subset must contain one row")
 check(len(scene_rows) == 1, "semantic suite must contain one free scene-selection row")
-check(sum(r.get("requested_selected_match") == "True" for r in instruction_rows) == 17, "semantic request-selection match must be 17/17 among evaluable rows")
-check(sum(r.get("instruction_joint_success") == "True" for r in instruction_rows) == 17, "instruction-level joint success must be 17/17 among evaluable rows")
-check(all(r.get("requested_target_object", "") == "" and r.get("requested_selected_match", "") == "" and r.get("instruction_joint_success", "") == "" for r in scene_rows), "scene-selection row must be N/A for instruction metrics")
+check(all(r.get("evaluation_scope") == "language_instruction" and r.get("request_type") == "language_instruction" for r in instruction_rows), "instruction scope label mismatch")
+check(all(r.get("evaluation_scope") == "fixed_target_control" and r.get("request_type") == "fixed_target" for r in fixed_rows), "fixed-target scope label mismatch")
+check(all(r.get("evaluation_scope") == "target_image_selected_target_control" and r.get("request_type") == "target_image" for r in target_image_rows), "target-image scope label mismatch")
+check(all(r.get("evaluation_scope") == "scene_selection_selected_target_control" for r in scene_rows), "scene-selection scope label mismatch")
+check(sum(r.get("requested_selected_match") == "True" for r in instruction_rows) == 1, "language-instruction request-selection match must be 1/1")
+check(sum(r.get("instruction_joint_success") == "True" for r in instruction_rows) == 1, "language-instruction joint success must be 1/1")
+check(all(r.get("requested_target_object", "").strip().lower() == r.get("selected_target_object", "").strip().lower() for r in fixed_rows), "fixed-target controls must preserve the configured target label")
+check(sum(r.get("fixed_target_control_success") == "True" for r in fixed_rows) == 15, "fixed-target control success must be 15/15")
+check(sum(r.get("target_success") == "True" for r in target_image_rows) == 1, "semantic target-image selected-target control must be 1/1")
+check(all(r.get("requested_selected_match", "") == "" and r.get("instruction_joint_success", "") == "" for r in fixed_rows + target_image_rows + scene_rows), "non-language rows must be N/A for instruction metrics")
 check(sum(r.get("scene_selection_control_success") == "True" for r in scene_rows) == 1, "scene-selection control result must be 1/1")
 conds = read_csv("supplement_v9_sanitized/data/revision_20260922/semantic_mpc_condition_statistics_v9.csv")
 all_live = next((r for r in conds if r["condition"] == "all_live_runs"), None)
-check(all_live is not None and all_live["n"] == "18" and all_live["success_005"] == "3/18" and all_live["success_008"] == "18/18" and all_live["instruction_evaluable_n"] == "17" and all_live["scene_selection_n"] == "1" and all_live["requested_selected_match"] == "17/17" and all_live["instruction_joint_success"] == "17/17" and all_live["scene_selection_control_success"] == "1/1", "semantic condition summary mismatch")
+check(all_live is not None and all_live["n"] == "18" and all_live["success_005"] == "3/18" and all_live["success_008"] == "18/18" and all_live["instruction_evaluable_n"] == "1" and all_live["scene_selection_n"] == "1" and all_live["fixed_target_n"] == "15" and all_live["fixed_target_control_success"] == "15/15" and all_live["language_instruction_n"] == "1" and all_live["language_instruction_joint_success"] == "1/1" and all_live["target_image_n"] == "1" and all_live["target_image_selected_target_control"] == "1/1" and all_live["requested_selected_match"] == "1/1" and all_live["instruction_joint_success"] == "1/1" and all_live["scene_selection_control_success"] == "1/1", "semantic condition summary mismatch")
 
 thresholds = read_csv("data/threshold_sensitivity_v9.csv")
 check(len(thresholds) == 18, "threshold table must contain 18 rows")
@@ -53,6 +64,16 @@ check(len(target) == 9 and set(r["seed"] for r in target) == {"42", "43", "44"},
 check(sum(r["semantic_match"] == "True" for r in target) == 8, "target semantic count mismatch")
 check(sum(r["pre_satisfied"] == "True" for r in target) == 0, "target matrix has pre-satisfied row")
 check(sum(r["joint_active_success"] == "True" for r in target) == 8, "target joint count mismatch")
+
+language_repeats = read_csv("supplement_v9_sanitized/data/revision_20260923/language_instruction_repeat_runs_v9.csv")
+check(len(language_repeats) == 9 and set(r["seed"] for r in language_repeats) == {"42", "43", "44"}, "language repeat size or seeds mismatch")
+check(all(r["vlm_backend"] == "codex" and r["model"] == "gpt-5.5" for r in language_repeats), "language repeats must use Codex gpt-5.5")
+check(sum(r["selection_match"] == "True" for r in language_repeats) == 9, "language repeat selection count mismatch")
+check(sum(r["target_success"] == "True" for r in language_repeats) == 9, "language repeat control count mismatch")
+check(sum(int(r["cache_hits"]) for r in language_repeats) == 0 and sum(int(r["fresh_vlm_responses"]) for r in language_repeats) == 9, "language repeat cache/response audit mismatch")
+language_aggregate = read_csv("supplement_v9_sanitized/data/revision_20260923/language_instruction_repeat_aggregate_v9.csv")
+language_all = next((r for r in language_aggregate if r["case"] == "all_cases"), None)
+check(language_all is not None and language_all["n"] == "9" and language_all["selection_matches"] == "9/9" and language_all["joint_successes"] == "9/9" and language_all["control_successes_at_threshold"] == "9/9", "language repeat aggregate mismatch")
 
 events = read_csv("supplement_v9_sanitized/data/revision_20260922/event_requery_controls_v9.csv")
 no_event = [r for r in events if r["case"] == "matched_no_event_instruction"]
@@ -75,6 +96,14 @@ treat = [r for r in fault if r["case"] == "with_synthetic_requery"]
 control = [r for r in fault if r["case"] == "no_requery"]
 check(len(treat) == len(control) == 3, "fault audit sizes mismatch")
 check(sum(r["semantic_recovered"] == "True" for r in treat) == 3 and sum(r["task_success"] == "True" for r in treat) == 2 and sum(r["task_success"] == "True" for r in control) == 0, "fault audit counts mismatch")
+
+codex_fault = read_csv("supplement_v9_sanitized/data/revision_20260923/event_fault_recovery_codex_runs_v9.csv")
+codex_treat = [r for r in codex_fault if r["case"] == "fault_with_requery"]
+codex_control = [r for r in codex_fault if r["case"] == "fault_no_requery"]
+check(len(codex_fault) == 12 and len(codex_treat) == len(codex_control) == 6, "Codex fault audit sizes mismatch")
+check(all(r["backend"] == "codex" and r["model"] == "gpt-5.5" for r in codex_fault), "Codex fault audit backend metadata mismatch")
+check(sum(r["semantic_recovered"] == "True" for r in codex_treat) == 6 and sum(r["task_success"] == "True" for r in codex_treat) == 5 and sum(r["task_success"] == "True" for r in codex_control) == 0, "Codex fault audit counts mismatch")
+check(sum(int(r["cache_hits"]) for r in codex_fault) == 0, "Codex fault audit cache hits are nonzero")
 
 visual = read_csv("supplement_v9_sanitized/data/revision_20260922/visual_feedback_runs_v9.csv")
 vd = distances(visual, "final_target_world_distance")
@@ -114,8 +143,8 @@ for path in ["data/semantic_mpc_authoritative_runs_v8.csv", "data/threshold_sens
     check(not (ROOT / path).exists(), f"superseded artifact still present: {path}")
 
 citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
-check("version: 1.0.7" in citation, "CITATION.cff version is not 1.0.7")
-check("releases/tag/v1.0.7" in citation, "CITATION.cff must point to the exact v1.0.7 release")
+check("version: 1.0.8" in citation, "CITATION.cff version is not 1.0.8")
+check("releases/tag/v1.0.8" in citation, "CITATION.cff must point to the v1.0.8 release URL")
 
 manifest_text = (ROOT / "FINAL_MANIFEST_v9.md").read_text(encoding="utf-8")
 marker = "## Complete tracked-file list\n"
@@ -145,7 +174,7 @@ if errors:
     sys.exit(1)
 print("ARTIFACT VERIFICATION PASSED")
 print("Raw MPC: 0/16, mean=0.324472, sample SD=0.108465")
-print("Semantic MPC: 3/18 at 0.05, 18/18 selected-target control at 0.08; 17/17 instruction-evaluable rows, 1 scene-selection row N/A")
+print("Semantic MPC: 3/18 at 0.05, 18/18 selected-target control at 0.08; 1/1 language instruction, 15/15 fixed-target controls, 1 target-image and 1 scene-selection control")
 print("Target image: 8/9 semantic, 8/9 joint, no pre-satisfied runs")
 print("Events: natural trigger 3/3 enabled under window=4, min_progress=0.002 world distance; matched distances identical, cache hits 0")
 print("Visual feedback: 0/6, mean=0.316042, sample SD=0.143929")

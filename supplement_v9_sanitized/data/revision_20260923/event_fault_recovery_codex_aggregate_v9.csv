@@ -1,0 +1,3 @@
+case,n,semantic_recoveries,task_successes,final_distance_mean,final_distance_std,steps_mean,steps_std
+fault_no_requery,6,0,0,0.2434963584,0.0903830562,19.1666666667,13.2577021639
+fault_with_requery,6,6,5,0.0638747513,0.0156617898,22.8333333333,13.6296245974

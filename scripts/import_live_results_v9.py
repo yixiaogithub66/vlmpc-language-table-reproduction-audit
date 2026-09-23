@@ -63,7 +63,8 @@ def main() -> None:
     )
     opening_fields = [
         "status", "suite", "name", "mode", "seed", "request_type",
-        "instruction_evaluable", "requested_target_object", "selected_target_object",
+        "evaluation_scope", "instruction_evaluable", "fixed_target_control_success",
+        "requested_target_object", "selected_target_object",
         "evaluation_target_object", "overall_success", "target_success",
         "initial_target_world_distance", "final_target_world_distance",
         "target_world_distance_delta", "success_distance_world",
@@ -76,20 +77,43 @@ def main() -> None:
     semantic_rows: list[dict[str, object]] = []
     for row in opening:
         exported = dict(row)
+        mode = row.get("mode", "")
         is_scene_selection = row.get("mode") == "vlm_scene" or row.get("name") == "vlm_scene_selection"
+        is_language_instruction = mode == "instruction"
+        is_fixed_target = mode == "fixed"
         request_type = {
             "fixed": "fixed_target",
             "instruction": "language_instruction",
             "target_image": "target_image",
             "vlm_scene": "scene_selection",
-        }.get(row.get("mode", ""), "diagnostic")
+        }.get(mode, "diagnostic")
+        evaluation_scope = {
+            "fixed": "fixed_target_control",
+            "instruction": "language_instruction",
+            "target_image": "target_image_selected_target_control",
+            "vlm_scene": "scene_selection_selected_target_control",
+        }.get(mode, "diagnostic")
         exported["request_type"] = request_type
-        exported["instruction_evaluable"] = str(not is_scene_selection)
-        exported["requested_target_object"] = "" if is_scene_selection else row.get("requested_target_object", "")
+        exported["evaluation_scope"] = evaluation_scope
+        # Only a natural-language instruction provides an instruction-level
+        # grounding test. Fixed-target, target-image, and free-scene rows are
+        # retained as separate controls and must not inflate that denominator.
+        exported["instruction_evaluable"] = str(is_language_instruction)
+        exported["fixed_target_control_success"] = (
+            str(truth(row.get("target_success", ""))) if is_fixed_target else ""
+        )
+        # The target-image row retains no independent textual ground truth;
+        # its separate nine-trial matrix is the authoritative image-grounding
+        # evaluation. The scene row likewise has no requested object.
+        exported["requested_target_object"] = (
+            row.get("requested_target_object", "")
+            if (is_language_instruction or is_fixed_target)
+            else ""
+        )
         exported["evaluation_target_object"] = row.get("selected_target_object", "")
         requested = normalized_target(row.get("requested_target_object", ""))
         selected = normalized_target(row.get("selected_target_object", ""))
-        if not is_scene_selection and requested and selected:
+        if is_language_instruction and requested and selected:
             matches = requested == selected
             exported["requested_selected_match"] = str(matches)
             exported["instruction_joint_success"] = str(matches and truth(row["target_success"]))
@@ -130,6 +154,24 @@ def main() -> None:
                 "success_008": f"{sum(value <= 0.08 for value in values)}/{len(values)}",
                 "instruction_evaluable_n": len(evaluable_rows),
                 "scene_selection_n": len(scene_rows),
+                "fixed_target_n": sum(row["evaluation_scope"] == "fixed_target_control" for row in condition_rows),
+                "fixed_target_control_success": (
+                    f"{sum(row['fixed_target_control_success'] == 'True' for row in condition_rows if row['evaluation_scope'] == 'fixed_target_control')}/"
+                    f"{sum(row['evaluation_scope'] == 'fixed_target_control' for row in condition_rows)}"
+                    if any(row["evaluation_scope"] == "fixed_target_control" for row in condition_rows) else "N/A"
+                ),
+                "language_instruction_n": sum(row["evaluation_scope"] == "language_instruction" for row in condition_rows),
+                "language_instruction_joint_success": (
+                    f"{sum(row['instruction_joint_success'] == 'True' for row in condition_rows if row['evaluation_scope'] == 'language_instruction')}/"
+                    f"{sum(row['evaluation_scope'] == 'language_instruction' for row in condition_rows)}"
+                    if any(row["evaluation_scope"] == "language_instruction" for row in condition_rows) else "N/A"
+                ),
+                "target_image_n": sum(row["evaluation_scope"] == "target_image_selected_target_control" for row in condition_rows),
+                "target_image_selected_target_control": (
+                    f"{sum(truth(row['target_success']) for row in condition_rows if row['evaluation_scope'] == 'target_image_selected_target_control')}/"
+                    f"{sum(row['evaluation_scope'] == 'target_image_selected_target_control' for row in condition_rows)}"
+                    if any(row["evaluation_scope"] == "target_image_selected_target_control" for row in condition_rows) else "N/A"
+                ),
                 "requested_selected_match": f"{sum(row['requested_selected_match'] == 'True' for row in evaluable_rows)}/{len(evaluable_rows)}" if evaluable_rows else "N/A",
                 "instruction_joint_success": f"{sum(row['instruction_joint_success'] == 'True' for row in evaluable_rows)}/{len(evaluable_rows)}" if evaluable_rows else "N/A",
                 "scene_selection_control_success": f"{sum(row['scene_selection_control_success'] == 'True' for row in scene_rows)}/{len(scene_rows)}" if scene_rows else "N/A",
@@ -148,6 +190,21 @@ def main() -> None:
             "success_008": f"{sum(value <= 0.08 for value in values)}/{len(values)}",
             "instruction_evaluable_n": len(evaluable_rows),
             "scene_selection_n": len(scene_rows),
+            "fixed_target_n": sum(row["evaluation_scope"] == "fixed_target_control" for row in semantic_rows),
+            "fixed_target_control_success": (
+                f"{sum(row['fixed_target_control_success'] == 'True' for row in semantic_rows if row['evaluation_scope'] == 'fixed_target_control')}/"
+                f"{sum(row['evaluation_scope'] == 'fixed_target_control' for row in semantic_rows)}"
+            ),
+            "language_instruction_n": sum(row["evaluation_scope"] == "language_instruction" for row in semantic_rows),
+            "language_instruction_joint_success": (
+                f"{sum(row['instruction_joint_success'] == 'True' for row in semantic_rows if row['evaluation_scope'] == 'language_instruction')}/"
+                f"{sum(row['evaluation_scope'] == 'language_instruction' for row in semantic_rows)}"
+            ),
+            "target_image_n": sum(row["evaluation_scope"] == "target_image_selected_target_control" for row in semantic_rows),
+            "target_image_selected_target_control": (
+                f"{sum(truth(row['target_success']) for row in semantic_rows if row['evaluation_scope'] == 'target_image_selected_target_control')}/"
+                f"{sum(row['evaluation_scope'] == 'target_image_selected_target_control' for row in semantic_rows)}"
+            ),
             "requested_selected_match": f"{sum(row['requested_selected_match'] == 'True' for row in evaluable_rows)}/{len(evaluable_rows)}",
             "instruction_joint_success": f"{sum(row['instruction_joint_success'] == 'True' for row in evaluable_rows)}/{len(evaluable_rows)}",
             "scene_selection_control_success": f"{sum(row['scene_selection_control_success'] == 'True' for row in scene_rows)}/{len(scene_rows)}" if scene_rows else "N/A",
@@ -158,7 +215,10 @@ def main() -> None:
         [
             "condition", "n", "mean_final_world_distance",
             "sample_sd_final_world_distance", "success_005", "success_008",
-            "instruction_evaluable_n", "scene_selection_n",
+            "instruction_evaluable_n", "scene_selection_n", "fixed_target_n",
+            "fixed_target_control_success", "language_instruction_n",
+            "language_instruction_joint_success", "target_image_n",
+            "target_image_selected_target_control",
             "requested_selected_match", "instruction_joint_success",
             "scene_selection_control_success",
         ],

@@ -312,12 +312,18 @@ def result_row(result):
     metrics = result.get("metrics") or {}
     params = result.get("semantic_params") or {}
     mode = result.get("mode")
-    instruction_evaluable = mode != "vlm_scene"
+    instruction_evaluable = mode == "instruction"
     request_type = {
         "fixed": "fixed_target",
         "instruction": "language_instruction",
         "target_image": "target_image",
         "vlm_scene": "scene_selection",
+    }.get(mode, "diagnostic")
+    evaluation_scope = {
+        "fixed": "fixed_target_control",
+        "instruction": "language_instruction",
+        "target_image": "target_image_selected_target_control",
+        "vlm_scene": "scene_selection_selected_target_control",
     }.get(mode, "diagnostic")
     selected_target = metrics.get("current_interactive_object")
     evaluation_target = metrics.get("evaluated_target_object") or selected_target
@@ -328,8 +334,16 @@ def result_row(result):
         "mode": result.get("mode"),
         "seed": result.get("seed"),
         "request_type": request_type,
+        "evaluation_scope": evaluation_scope,
         "instruction_evaluable": instruction_evaluable,
-        "requested_target_object": result.get("target_object") if instruction_evaluable else "",
+        "fixed_target_control_success": (
+            bool(metrics.get("target_success")) if mode == "fixed" else ""
+        ),
+        # Target-image and free-scene rows have no independent textual ground
+        # truth; keep them outside the instruction denominator.
+        "requested_target_object": (
+            result.get("target_object") if mode in {"fixed", "instruction"} else ""
+        ),
         "selected_target_object": selected_target,
         "evaluation_target_object": evaluation_target,
         "overall_success": metrics.get("overall_success"),

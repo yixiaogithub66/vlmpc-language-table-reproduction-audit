@@ -1,4 +1,4 @@
-# Final Manifest v1.0.7
+# Final Manifest v1.0.8
 
 ## Manuscript
 
@@ -35,12 +35,20 @@
 - supplement_v9_sanitized/data/revision_20260922/target_image_selection_audit_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/target_image_matrix_runs_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/target_image_matrix_aggregate_v9.csv
+- supplement_v9_sanitized/data/revision_20260923/README.md
+- supplement_v9_sanitized/data/revision_20260923/event_fault_recovery_codex_aggregate_v9.csv
+- supplement_v9_sanitized/data/revision_20260923/event_fault_recovery_codex_runs_v9.csv
+- supplement_v9_sanitized/data/revision_20260923/language_instruction_repeat_aggregate_v9.csv
+- supplement_v9_sanitized/data/revision_20260923/language_instruction_repeat_runs_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/event_requery_controls_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/event_requery_statistics_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/event_fault_recovery_runs_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/event_fault_recovery_aggregate_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/visual_feedback_runs_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/visual_feedback_statistics_v9.csv
+- supplement_v9_sanitized/data/revision_20260922/semantic_oracle_feedback_runs_v9.csv
+- supplement_v9_sanitized/data/revision_20260922/root_cause_ablation_v9.csv
+- supplement_v9_sanitized/data/revision_20260922/root_cause_ablation_v9.md
 - supplement_v9_sanitized/data/grounded_action_replacement_summary_v9.csv
 - supplement_v9_sanitized/data/code_manifest_v9.csv
 - supplement_v9_sanitized/data/robustness_edge_audit/README.md
@@ -53,6 +61,9 @@
 ## Utilities and response materials
 
 - scripts/import_live_results_v9.py
+- scripts/derive_root_cause_ablation_v9.py
+- supplement_v9_sanitized/source/stage_experiments/run_language_instruction_repeats.py
+- supplement_v9_sanitized/source/stage_experiments/run_revision_event_recovery_audit_codex.py
 - scripts/plot_paper_figures.py
 - scripts/verify_artifact.py
 - RESPONSE_TO_REVIEWERS_v9.md
@@ -106,6 +117,7 @@ The verifier is the authoritative final-integrity check. Superseded v8 aggregate
 - main.tex
 - refs.bib
 - scripts/import_live_results_v9.py
+- scripts/derive_root_cause_ablation_v9.py
 - scripts/plot_paper_figures.py
 - scripts/verify_artifact.py
 - supplement_v9_sanitized/README.md
@@ -124,11 +136,19 @@ The verifier is the authoritative final-integrity check. Superseded v8 aggregate
 - supplement_v9_sanitized/data/revision_20260922/event_requery_controls_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/event_requery_statistics_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/semantic_mpc_condition_statistics_v9.csv
+- supplement_v9_sanitized/data/revision_20260922/semantic_oracle_feedback_runs_v9.csv
+- supplement_v9_sanitized/data/revision_20260922/root_cause_ablation_v9.csv
+- supplement_v9_sanitized/data/revision_20260922/root_cause_ablation_v9.md
 - supplement_v9_sanitized/data/revision_20260922/target_image_matrix_aggregate_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/target_image_matrix_runs_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/target_image_selection_audit_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/visual_feedback_runs_v9.csv
 - supplement_v9_sanitized/data/revision_20260922/visual_feedback_statistics_v9.csv
+- supplement_v9_sanitized/data/revision_20260923/README.md
+- supplement_v9_sanitized/data/revision_20260923/event_fault_recovery_codex_aggregate_v9.csv
+- supplement_v9_sanitized/data/revision_20260923/event_fault_recovery_codex_runs_v9.csv
+- supplement_v9_sanitized/data/revision_20260923/language_instruction_repeat_aggregate_v9.csv
+- supplement_v9_sanitized/data/revision_20260923/language_instruction_repeat_runs_v9.csv
 - supplement_v9_sanitized/source/.env.example
 - supplement_v9_sanitized/source/README.md
 - supplement_v9_sanitized/source/detect_bbx.py
@@ -141,6 +161,8 @@ The verifier is the authoritative final-integrity check. Superseded v8 aggregate
 - supplement_v9_sanitized/source/stage_experiments/run_event_requery_controls.py
 - supplement_v9_sanitized/source/stage_experiments/run_opening_report_complete.py
 - supplement_v9_sanitized/source/stage_experiments/run_revision_event_recovery_audit.py
+- supplement_v9_sanitized/source/stage_experiments/run_language_instruction_repeats.py
+- supplement_v9_sanitized/source/stage_experiments/run_revision_event_recovery_audit_codex.py
 - supplement_v9_sanitized/source/stage_experiments/run_revision_target_image_matrix.py
 - supplement_v9_sanitized/source/video_interface.py
 - supplement_v9_sanitized/source/vlm_client.py

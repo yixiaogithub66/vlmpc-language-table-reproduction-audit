@@ -1,0 +1,5 @@
+case,n,selection_matches,joint_successes,control_successes_at_threshold,mean_final_world_distance,sample_sd_final_world_distance,seeds
+red_moon_reward_corner,3,3/3,3/3,3/3,0.0587065096,0.0232656229,"42,43,44"
+blue_cube_bottom_right,3,3/3,3/3,3/3,0.0623391668,0.0248888486,"42,43,44"
+yellow_pentagon_lower_right,3,3/3,3/3,3/3,0.0773398777,0.0016833714,"42,43,44"
+all_cases,9,9/9,9/9,9/9,0.0661285180,0.0190806689,"42,43,44"

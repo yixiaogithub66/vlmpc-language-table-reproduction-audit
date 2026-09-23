@@ -1,0 +1,13 @@
+status,case,seed,true_target,injected_fault_target,event_enabled,forced_requery_step,final_controller_target,semantic_recovered,task_success,initial_true_target_distance,final_true_target_distance,num_steps_executed,event_requeries,natural_event_requeries,trigger_types,backend,model,cache_hits,fresh_vlm_responses,strict_no_cache
+ok,fault_no_requery,42,red moon,blue cube,False,,blue cube,False,False,0.2180523574,0.1607203782,22,0,0,,codex,gpt-5.5,0,1,True
+ok,fault_with_requery,42,red moon,blue cube,True,3,red moon,True,True,0.2180523574,0.0665661097,10,1,0,synthetic_audit,codex,gpt-5.5,0,2,True
+ok,fault_no_requery,43,red moon,blue cube,False,,blue cube,False,False,0.2722683251,0.2722683251,11,0,0,,codex,gpt-5.5,0,1,True
+ok,fault_with_requery,43,red moon,blue cube,True,3,red moon,True,True,0.2722683251,0.0444452204,23,1,0,synthetic_audit,codex,gpt-5.5,0,2,True
+ok,fault_no_requery,44,red moon,blue cube,False,,blue cube,False,False,0.1429109722,0.1429109722,4,0,0,,codex,gpt-5.5,0,1,True
+ok,fault_with_requery,44,red moon,blue cube,True,3,red moon,True,True,0.1429109722,0.0771643966,9,1,0,synthetic_audit,codex,gpt-5.5,0,2,True
+ok,fault_no_requery,45,red moon,blue cube,False,,blue cube,False,False,0.2150963545,0.2112889141,10,0,0,,codex,gpt-5.5,0,1,True
+ok,fault_with_requery,45,red moon,blue cube,True,3,red moon,True,True,0.2150963545,0.0451269709,19,1,0,synthetic_audit,codex,gpt-5.5,0,2,True
+ok,fault_no_requery,46,red moon,blue cube,False,,blue cube,False,False,0.4355698526,0.3846678138,29,0,0,,codex,gpt-5.5,0,1,True
+ok,fault_with_requery,46,red moon,blue cube,True,3,red moon,True,True,0.4355698526,0.0691730678,31,1,0,synthetic_audit,codex,gpt-5.5,0,2,True
+ok,fault_no_requery,47,red moon,blue cube,False,,blue cube,False,False,0.2891224325,0.2891217470,39,0,0,,codex,gpt-5.5,0,1,True
+ok,fault_with_requery,47,red moon,blue cube,True,3,red moon,True,False,0.2891224325,0.0807727426,45,1,0,synthetic_audit,codex,gpt-5.5,0,2,True

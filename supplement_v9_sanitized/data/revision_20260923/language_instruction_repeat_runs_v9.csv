@@ -1,0 +1,10 @@
+status,case,instruction,expected_object,seed,vlm_backend,model,selected_object,selection_match,overall_success,target_success,initial_target_world_distance,final_target_world_distance,target_world_distance_delta,num_steps_executed,interactive_object_requests,event_requeries,cache_hits,fresh_vlm_responses,strict_no_cache
+ok,red_moon_reward_corner,Please push the red moon to the reward target corner.,red moon,42,codex,gpt-5.5,red moon,True,True,True,0.2180523574,0.0642655641,0.1537867934,23,1,0,0,1,True
+ok,blue_cube_bottom_right,Move the blue cube into the bottom-right goal.,blue cube,42,codex,gpt-5.5,blue cube,True,True,True,0.3486103415,0.0732922703,0.2753180712,22,1,0,0,1,True
+ok,yellow_pentagon_lower_right,Guide the yellow pentagon to the lower-right corner.,yellow pentagon,42,codex,gpt-5.5,yellow pentagon,True,True,True,0.3386065662,0.0785499439,0.2600566223,37,1,0,0,1,True
+ok,red_moon_reward_corner,Please push the red moon to the reward target corner.,red moon,43,codex,gpt-5.5,red moon,True,True,True,0.2722683251,0.0331649110,0.2391034141,20,1,0,0,1,True
+ok,blue_cube_bottom_right,Move the blue cube into the bottom-right goal.,blue cube,43,codex,gpt-5.5,blue cube,True,True,True,0.2276143432,0.0798729807,0.1477413625,11,1,0,0,1,True
+ok,yellow_pentagon_lower_right,Guide the yellow pentagon to the lower-right corner.,yellow pentagon,43,codex,gpt-5.5,yellow pentagon,True,True,True,0.3074730039,0.0754174441,0.2320555598,11,1,0,0,1,True
+ok,red_moon_reward_corner,Please push the red moon to the reward target corner.,red moon,44,codex,gpt-5.5,red moon,True,True,True,0.1429109722,0.0786890537,0.0642219186,15,1,0,0,1,True
+ok,blue_cube_bottom_right,Move the blue cube into the bottom-right goal.,blue cube,44,codex,gpt-5.5,blue cube,True,True,True,0.1221776232,0.0338522494,0.0883253738,4,1,0,0,1,True
+ok,yellow_pentagon_lower_right,Guide the yellow pentagon to the lower-right corner.,yellow pentagon,44,codex,gpt-5.5,yellow pentagon,True,True,True,0.3067019284,0.0780522451,0.2286496833,31,1,0,0,1,True

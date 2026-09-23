@@ -1,10 +1,10 @@
 # Changelog
 
-## v1.0.7
+## v1.0.8
 
-- Corrected the semantic-suite denominator: the 17 explicit-target rows are reported as 17/17 for request matching and instruction-level joint success; the free scene-selection row is marked N/A for instruction metrics and retained as a separate 1/1 selected-target control.
+- Corrected the semantic-suite denominator: only the single natural-language row is instruction-evaluable (1/1 request matching and instruction-level joint success). The 15 fixed-target rows, one target-image row, and one free scene-selection row are retained under separate selected-target control scopes (15/15, 1/1, and 1/1 respectively).
 - Re-ran the matched event controls with the semantic detector expressed in world-distance units (window=4, min_progress=0.002) and recorded the effective parameters in every event row and aggregate.
-- Updated the manuscript, response letter, figures, release metadata, source provenance, and verifier to use the corrected definitions and v1.0.7 release binding.
+- Added the 2026-09-23 CodexCLIClient language-repeat and six-seed synthetic fault audits, synchronized the manuscript and response letter, and updated the release manifest and verifier. Published as the v1.0.8 release.
 
 ## v1.0.6
 
