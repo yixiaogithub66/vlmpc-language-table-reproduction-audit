@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.10
+
+- Restored the registered manuscript title, synchronized the submission metadata and release references, and rebuilt the compiled PDF.
+- Repackaged the validated evidence set under v1.0.10 without changing the authoritative experimental data or reported counts.
+
 ## v1.0.9
 
 - Reframed the manuscript around an execution-authority audit, with the oracle-versus-visual feedback gap and raw-planner action replacement made central to the argument.
