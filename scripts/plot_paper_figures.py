@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the manuscript figures from the v1.0.7 evidence files.
+"""Render the manuscript figures for the v1.0.9 submission package.
 
 The script intentionally reads the authoritative CSVs rather than embedding
 summary values in plotting code.  It produces figures at approximately their
@@ -317,9 +317,9 @@ def plot_method_pipeline() -> None:
     bottom_y, bottom_w, bottom_h = 0.13, 0.205, 0.23
     bottom_specs = [
         (0.035, "Raw MPC", "no state feedback\nfresh 0/16\nseeds 45--48", COLORS["light_red"], COLORS["red"]),
-        (0.275, "Oracle feedback", "privileged state\n23/23 overrides\nsemantic 18/18", COLORS["light_blue"], COLORS["blue"]),
+        (0.275, "Oracle feedback", "state source\n23/23 overrides\nsemantic 18/18", COLORS["light_blue"], COLORS["blue"]),
         (0.515, "Visual feedback", "detector/tracker\nno simulator state\n0/6", COLORS["light_neutral"], COLORS["muted"]),
-        (0.755, "Event controls", "no-cache pairs\ntrigger executes\nno causal gain", COLORS["light_amber"], COLORS["amber"]),
+        (0.755, "Event controls", "no-cache pairs\ntrigger executes\nmatched distance", COLORS["light_amber"], COLORS["amber"]),
     ]
     for x, title, body, face, edge in bottom_specs:
         add_box(ax, (x, bottom_y), bottom_w, bottom_h, title, body, face, edge, title_size=8.1, body_size=6.35)
@@ -330,7 +330,7 @@ def plot_method_pipeline() -> None:
     add_arrow(ax, (0.845, top_y - 0.01), (0.857, bottom_y + bottom_h + 0.01))
 
     ax.add_patch(FancyBboxPatch((0.035, 0.005), 0.93, 0.045, boxstyle="round,pad=0.008,rounding_size=0.012", transform=ax.transAxes, facecolor="#F4F6F8", edgecolor="none", zorder=1))
-    ax.text(0.5, 0.027, "Reporting boundary: successful diagnostic branches use privileged simulator-state feedback; event controls verify trigger execution, not causal recovery.", transform=ax.transAxes, ha="center", va="center", fontsize=7.0, color=COLORS["ink"], zorder=2)
+    ax.text(0.5, 0.027, "Attribution labels: oracle and visual state sources are separated; event pairs distinguish trigger execution from distance change.", transform=ax.transAxes, ha="center", va="center", fontsize=7.0, color=COLORS["ink"], zorder=2)
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
     save_figure(fig, "method_pipeline_v9")
 
@@ -363,7 +363,7 @@ def main() -> None:
     plot_event_audit()
     plot_method_pipeline()
     plot_qualitative_frames()
-    print("Rendered v1.0.7 manuscript figures from live and archived CSVs.")
+    print("Rendered v1.0.9 manuscript figures from live and archived CSVs.")
 
 
 if __name__ == "__main__":

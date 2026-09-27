@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.9
+
+- Reframed the manuscript around an execution-authority audit, with the oracle-versus-visual feedback gap and raw-planner action replacement made central to the argument.
+- Regenerated the manuscript figures and nine-page PDF while preserving the authoritative experimental CSVs and reported counts.
+- Synchronized the submission documentation, citation metadata, verifier, and immutable release binding for the revised manuscript.
+
 ## v1.0.8
 
 - Corrected the semantic-suite denominator: only the single natural-language row is instruction-evaluable (1/1 request matching and instruction-level joint success). The 15 fixed-target rows, one target-image row, and one free scene-selection row are retained under separate selected-target control scopes (15/15, 1/1, and 1/1 respectively).

@@ -1,4 +1,4 @@
-# Reproduction Guide v1.0.8
+# Reproduction Guide v1.0.9
 
 ## 1. Offline integrity check
 
@@ -39,4 +39,4 @@ A fresh online rerun requires the original simulator, dependencies, image assets
 
 ## 6. Provenance
 
-The source snapshot manifest records public-file SHA-256 values and distinguishes executed source from reviewer-facing snapshots with sanitized runtime defaults. The semantic event controls use `semantic_event_requery_window=4`, `semantic_event_requery_min_progress=0.002`, and `semantic_event_requery_progress_units=world_distance`; the generic original-planner event parameters are not used to interpret those controls. This package is the publicly tagged v1.0.8 release; verify the immutable tag binding before external submission.
+The source snapshot manifest records public-file SHA-256 values and distinguishes executed source from reviewer-facing snapshots with sanitized runtime defaults. The semantic event controls use `semantic_event_requery_window=4`, `semantic_event_requery_min_progress=0.002`, and `semantic_event_requery_progress_units=world_distance`; the generic original-planner event parameters are not used to interpret those controls. This package is the publicly tagged v1.0.9 release; verify the immutable tag binding before external submission.

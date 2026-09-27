@@ -1,8 +1,8 @@
 # VLMPC Language-Table Reproduction Audit
 
-## Revision artifact v1.0.8
+## Revision artifact v1.0.9
 
-This package accompanies the revised manuscript **Traceable Reproduction Audit and Feedback-Assisted Diagnostics for VLMPC-Style Language-Table Pushing**. It contains the manuscript source, regenerated figures, sanitized experiment summaries, portable source snapshots, and verification scripts for the complete revision experiment suite.
+This package accompanies the revised manuscript **Auditing Execution Authority in Vision-Language Model Predictive Control for Language-Table Pushing**. It contains the manuscript source, regenerated figures, sanitized experiment summaries, portable source snapshots, and verification scripts for the complete revision experiment suite.
 
 The package is an evidence-bound audit. It does not claim that the unmodified VLMPC video-prediction MPC chain was successfully reproduced. The fresh raw sweep contains 16 runs across four controller variants and seeds 45--48, with 0/16 runs meeting the project success threshold. Positive oracle-feedback results are reported separately as diagnostic stabilization, because privileged simulator state determines the executed action in those branches.
 

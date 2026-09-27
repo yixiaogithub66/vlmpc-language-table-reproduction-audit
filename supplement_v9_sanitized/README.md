@@ -1,4 +1,4 @@
-# Sanitized Supplement v1.0.7
+# Sanitized Supplement v1.0.9
 
 This supplement contains the portable source snapshot and revision experiment summaries. It is intentionally separated from private runtime configuration.
 

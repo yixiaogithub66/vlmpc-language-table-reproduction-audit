@@ -1,10 +1,10 @@
 # Data and Code Availability
 
-The v1.0.8 revision artifact is provided as a portable, sanitized package alongside the manuscript. It is published as the GitHub release at:
+The v1.0.9 revision artifact is provided as a portable, sanitized package alongside the manuscript. It is published as the GitHub release at:
 
 https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit
 
-https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit/releases/tag/v1.0.8
+https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit/releases/tag/v1.0.9
 
 The package contains:
 

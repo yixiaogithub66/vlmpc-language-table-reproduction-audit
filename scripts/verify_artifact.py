@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the portable v1.0.8 evidence package."""
+"""Verify the portable v1.0.9 evidence package."""
 from __future__ import annotations
 import csv, hashlib, json, re, statistics, sys
 from pathlib import Path
@@ -143,8 +143,8 @@ for path in ["data/semantic_mpc_authoritative_runs_v8.csv", "data/threshold_sens
     check(not (ROOT / path).exists(), f"superseded artifact still present: {path}")
 
 citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
-check("version: 1.0.8" in citation, "CITATION.cff version is not 1.0.8")
-check("releases/tag/v1.0.8" in citation, "CITATION.cff must point to the v1.0.8 release URL")
+check("version: 1.0.9" in citation, "CITATION.cff version is not 1.0.9")
+check("releases/tag/v1.0.9" in citation, "CITATION.cff must point to the v1.0.9 release URL")
 
 manifest_text = (ROOT / "FINAL_MANIFEST_v9.md").read_text(encoding="utf-8")
 marker = "## Complete tracked-file list\n"
