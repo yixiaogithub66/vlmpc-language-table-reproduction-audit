@@ -1,7 +1,6 @@
 \documentclass[conference]{IEEEtran}
 
 \IEEEoverridecommandlockouts
-
 \input{glyphtounicode}
 \pdfgentounicode=1
 \usepackage{cmap}
@@ -14,7 +13,6 @@
 \usepackage{multirow}
 \usepackage{cite}
 \usepackage{url}
-\usepackage{xcolor}
 
 \graphicspath{{figures/}}
 \raggedbottom
@@ -30,129 +28,112 @@
 \newcommand{\MPC}{\mathrm{MPC}}
 \newcommand{\VLM}{\mathrm{VLM}}
 \newcommand{\distw}{d_{\mathrm{world}}}
-\newcommand{\pass}{\textsc{pass}}
-\newcommand{\fail}{\textsc{fail}}
 
 \title{Traceable Reproduction Audit and Feedback-Assisted Diagnostics\\
 for VLMPC-Style Language-Table Pushing}
 
-
 \author{%
-\IEEEauthorblockN{Xiao Yi}
-\IEEEauthorblockA{\textit{College of Computer Science and Technology}\\
+\parbox{\textwidth}{\centering
+\scriptsize
+\setlength{\tabcolsep}{0pt}
+\begin{tabular}{@{}c@{\hspace{2.1em}}c@{\hspace{2.1em}}c@{}}
+\begin{minipage}[t]{0.28\textwidth}\centering
+Xiao Yi\\
+\textit{College of Computer Science and Technology}\\
 \textit{Tongji University}\\
-Shanghai, China}
-\and
-\IEEEauthorblockN{Yuanqiang Zhou}
-\IEEEauthorblockA{\textit{Department of Control Science and Engineering}\\
-\textit{College of Electronics and Information Engineering}\\
+Shanghai, China\\
+2453783@tongji.edu.cn
+\end{minipage}
+&
+\begin{minipage}[t]{0.28\textwidth}\centering
+Yuanqiang Zhou\\
+\textit{Department of Control Science and Engineering}\\
 \textit{Tongji University}\\
-Shanghai, China}
+Shanghai, China\\
+zhouyuanq@tongji.edu.cn
+\end{minipage}
+&
+\begin{minipage}[t]{0.28\textwidth}\centering
+Wenyi Li\\
+\textit{Department of Control Science and Engineering}\\
+\textit{Tongji University}\\
+Shanghai, China\\
+2419266829@qq.com
+\end{minipage}
+\end{tabular}
+
+\vspace{0.45em}
+
+\begin{tabular}{@{}c@{\hspace{2.1em}}c@{\hspace{2.1em}}c@{}}
+\begin{minipage}[t]{0.28\textwidth}\centering
+Pan Li\\
+\textit{Department of Control Science and Engineering}\\
+\textit{Tongji University}\\
+Shanghai, China\\
+pli@tongji.edu.cn
+\end{minipage}
+&
+\begin{minipage}[t]{0.28\textwidth}\centering
+Bingzhao Gao\\
+\textit{College of Automotive and Energy Engineering}\\
+\textit{Tongji University}\\
+Shanghai, China\\
+gaobz@tongji.edu.cn
+\end{minipage}
+&
+\begin{minipage}[t]{0.28\textwidth}\centering
+Hong Chen\\
+\textit{Department of Control Science and Engineering}\\
+\textit{Tongji University}\\
+Shanghai, China\\
+chenhong2019@tongji.edu.cn
+\end{minipage}
+\end{tabular}}%
 }
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Reliable evaluation of vision-language model predictive control (VLMPC) requires knowing not only whether a task succeeds, but which component selects the target and which component controls the executed action. We introduce a traceable execution-authority audit for a VLMPC-style Language-Table system that separates semantic grounding, planner authority, feedback source, and closed-loop completion across matched runs. The audit reveals a sharp feedback-source bottleneck: raw video-prediction MPC reaches 0/16 at the $\distw^{\mathrm{final}}\leq0.08$ tolerance, while a matched semantic controller succeeds in 6/6 runs with oracle state and 0/6 with detector/tracker feedback; the paired visual-minus-oracle final-distance gap is $0.2548\pm0.1453$. Grounded-controller logs further show that state feedback replaces 23/23 raw actions in every audited run, making execution authority directly observable. The semantic layer is effective when evaluated independently: strict no-cache language trials achieve 9/9 target-selection matches and 9/9 joint controls, and a target-image matrix achieves 8/9 semantic matches and 8/9 joint active successes. Re-query experiments separate mechanism capability from trigger benefit: a forced query repairs 6/6 injected semantic faults and yields 5/6 true-target successes versus 0/6 without re-query, whereas matched natural-event controls preserve identical final distances. Together, these results turn aggregate success rates into component-level evidence and provide a reusable protocol for locating whether a vision-language controller is limited by grounding, action authority, feedback estimation, or recovery logic.
+Aggregate success rates obscure which component actually controls a vision-language model predictive control (VLMPC) system. We introduce an execution-authority audit for Language-Table pushing that records the requested and selected targets, state source, raw planner action, executed action, and terminal outcome. The audit localizes the dominant tested gap: the raw video-prediction chain reaches 0/16 successes, while the same semantic controller and seeds reach 6/6 with oracle state and 0/6 with detector/tracker feedback; the paired visual-minus-oracle final-distance gap is $0.2548\pm0.1453$. In grounded diagnostics, feedback replaces 23/23 raw actions in every audited run, exposing the transfer of execution authority. Independent no-cache evaluations obtain 9/9 language matches and joint controls, 8/9 target-image matches and joint active successes, and 6/6 semantic repairs with 5/6 true-target completions under forced re-query versus 0/6 without re-query. These component-level comparisons separate grounding, planning, feedback estimation, and recovery, turning a reproduction outcome into a traceable diagnosis.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Vision-language model predictive control, semantic MPC, Language-Table, reproduction audit, event re-query, target-image grounding.
+Vision-language model predictive control, Language-Table, reproduction audit, feedback control, event re-query.
 \end{IEEEkeywords}
 
 \section{Introduction}
-Vision-language manipulation must solve two coupled problems: infer what the instruction refers to and execute how the object should move. Model predictive control (MPC) provides a natural receding-horizon mechanism for the second problem \cite{mayne2000mpc,rawlings2017mpc}, while vision-language models (VLMs) provide semantic grounding for the first \cite{ahn2022saycan,brohan2023rt2,huang2022inner}. Their combination is attractive for tasks such as Language-Table pushing, where a controller must identify a named or pictured object, maintain its state, choose a feasible action, and recover when the semantic or visual state becomes stale.
+Vision-language manipulation couples a semantic question---what object does the instruction identify?---with a control question---how should that object be moved? Model predictive control (MPC) supplies receding-horizon action selection \cite{mayne2000mpc,rawlings2017mpc}, while vision-language models (VLMs) support task grounding \cite{ahn2022saycan,brohan2023rt2,huang2022inner}. VLMPC combines these capabilities by using semantic evaluation within a visual-prediction control loop \cite{zhao2024vlmpc}; trajectory-level variants reduce the cost of full video prediction \cite{chen2025trajvlmpc}.
 
-VLMPC couples semantic evaluation with candidate-action prediction inside a visual MPC loop \cite{zhao2024vlmpc}; trajectory-level variants further reduce the burden of full video prediction \cite{chen2025trajvlmpc}. Yet an aggregate success rate does not reveal which module produced that success. A correct target can be paired with an ineffective controller; a stable execution can be produced after the raw planner action is replaced; and a re-query can fire without changing the outcome. This attribution problem is especially important in reproduction studies, because semantic correctness, planner authority, feedback quality, and final task completion can otherwise collapse into a single number.
+The resulting pipeline is powerful but difficult to diagnose. A correct target can be paired with an ineffective controller, a successful trajectory can be produced after the raw planner action is replaced, and a re-query can fire without changing an already successful outcome. An aggregate task score cannot distinguish these cases. This ambiguity is especially consequential in reproduction studies: without an explicit record of state source and executed action, success may be assigned to a component that did not control the environment.
 
-We address this problem with an execution-authority audit that makes four quantities explicit for every branch: the requested and selected target, the source of control state, the action that is actually executed, and the final target-relative outcome. The audit evaluates an unmodified video-prediction chain, a grounded branch that logs and then corrects raw actions, a semantic state-feedback branch, matched oracle and detector/tracker feedback, language and target-image grounding, and event-triggered re-query. Figure~\ref{fig:method} summarizes this decomposition. Its central advantage is attribution: each positive or negative result identifies a specific layer rather than being assigned to the full pipeline.
+We address this attribution problem with an execution-authority audit. Every branch records the requested target, selected target, control-state source, raw planner action, executed action, and target-relative outcome. Matched comparisons then isolate four questions: whether the raw visual planner reaches the task criterion; whether a feedback law replaces its actions; whether oracle and visual state estimates support the same semantic controller; and whether language, target-image grounding, and re-query remain effective when evaluated independently.
 
-The resulting evidence isolates a clear technical bottleneck. Across seeds 45--50, the same fixed-target semantic controller succeeds in 6/6 runs with oracle state and 0/6 with detector/tracker estimates, with a paired final-distance gap of $0.2548\pm0.1453$. At the semantic layer, independent strict no-cache trials reach 9/9 language target-selection matches and 8/9 target-image matches. At the recovery layer, forced re-query repairs 6/6 injected semantic faults and reaches 5/6 true-target successes, compared with 0/6 for paired no-requery controls. These results show that the audited system's strongest separation lies in feedback estimation and execution authority, while semantic grounding and controlled recovery are independently measurable capabilities.
-
-The contributions are:
-\begin{enumerate}
-\setlength{\itemsep}{0pt}
-\item An execution-authority protocol that separates semantic selection, state source, raw planner output, executed action, and target-relative success for every controller branch.
-\item A matched feedback-source experiment that localizes the dominant tested gap: 6/6 success with oracle state versus 0/6 with detector/tracker estimates under the same semantic controller and seeds.
-\item Independent grounding and recovery evaluations comprising nine language trials, nine target-image trials, matched natural-event controls, and a six-seed semantic-fault intervention.
-\item A file-traceable evidence package with per-run CSVs, source and asset hashes, cache accounting, publication figures, and automated consistency checks that bind manuscript claims to executable artifacts.
-\end{enumerate}
+The resulting evidence identifies a feedback-source bottleneck rather than a semantic one. The raw chain is 0/16, and grounded logs show that state feedback replaces 23/23 raw actions in every audited run. With the semantic controller and seeds fixed, oracle state yields 6/6 successes and detector/tracker feedback yields 0/6. Meanwhile, strict no-cache language trials reach 9/9 target matches, the target-image matrix reaches 8/9, and forced re-query repairs 6/6 injected semantic faults. The oracle-state branches are privileged diagnostics, not successful reproductions of the unmodified VLMPC chain. The contribution is therefore not another aggregate controller score, but a reusable protocol for assigning component responsibility and a file-traceable evaluation that exposes where the tested system succeeds and where the closed loop breaks.
 
 \section{Related Work}
-\subsection{Visual MPC and Video-Prediction Control}
-Visual MPC uses learned visual dynamics to support model-based manipulation directly in image space. Deep visual foresight and related visual MPC systems showed that action-conditioned video prediction can guide robot motion without a hand-designed dynamics model \cite{finn2017deep,ebert2018visual}. Such approaches are attractive for open-ended manipulation, but they are also sensitive to prediction bias, object occlusion, and long-horizon compounding errors. These limitations are relevant to our reproduction: the planner can generate candidate futures and rank actions, but the unmodified closed loop does not reliably drive the object to the selected goal region.
+Visual MPC uses action-conditioned prediction to control manipulation directly from images \cite{finn2017deep,ebert2018visual}. Language-conditioned systems separate semantic and spatial reasoning in different ways: CLIPort decomposes semantic and spatial reasoning \cite{shridhar2021cliport}, SayCan combines language plans with affordances \cite{ahn2022saycan}, Inner Monologue incorporates feedback \cite{huang2022inner}, and VoxPoser constructs spatial value maps \cite{huang2023voxposer}. These systems motivate an explicit connection between high-level selection and low-level execution.
 
-\subsection{Vision-Language Manipulation}
-Language-conditioned manipulation has used VLMs and language models for task grounding, affordance selection, reasoning, and failure interpretation. CLIPort separates semantic ``what'' reasoning from spatial ``where'' execution \cite{shridhar2021cliport}. SayCan grounds language plans with affordances \cite{ahn2022saycan}. Inner Monologue emphasizes feedback-aware embodied reasoning \cite{huang2022inner}, and VoxPoser composes 3D value maps for robotic manipulation from language-model reasoning \cite{huang2023voxposer}. These systems motivate our use of explicit feedback and event handling: semantic decisions must be connected to low-level execution evidence, not only to high-level task labels.
+Evaluation work has also moved beyond isolated demonstrations. VLATest probes robustness \cite{wang2024vlatest}, while AHA structures failure reasoning \cite{duan2024aha}. Our audit complements these approaches by treating state source and executed-action authority as first-class evaluation variables. It is designed to answer not only whether a run succeeds, but which module supplies the information and action that produce its outcome.
 
-\subsection{VLMPC, Trajectory Variants, and Testing}
-VLMPC integrates VLM perception with MPC-style candidate-action evaluation \cite{zhao2024vlmpc}, while Traj-VLMPC reduces computational overhead through trajectory generation \cite{chen2025trajvlmpc}. Complementary evaluation work such as VLATest emphasizes robustness beyond isolated demonstrations \cite{wang2024vlatest}, and AHA shows the value of structured failure reasoning \cite{duan2024aha}. Our work contributes an attribution layer to this evaluation line: it records which module selected the target, which state source informed control, and which action actually reached the environment.
-
-\section{Evaluation Setup and Evidence Sources}
-\subsection{Task Definition}
-The experiment uses Language-Table desktop pushing tasks. A target object such as \emph{red moon}, \emph{blue cube}, or \emph{yellow pentagon} should be pushed toward a designated corner. The controller input can be a fixed target label, a natural-language instruction, a target image, or a VLM-based scene selection request. The action is a planar end-effector push in the simulated table environment.
-
-The primary metric is the final world-coordinate distance between the target object and the goal:
+\section{Execution-Authority Audit}
+\subsection{Task, Metric, and Evidence}
+The experiments use Language-Table desktop pushing. A fixed label, language instruction, target image, or scene-selection request identifies an object to be pushed toward a designated corner. Success is measured by the final world-coordinate target-to-goal distance,
 \begin{equation}
-  \mathrm{success} = \mathbb{I}\left[\distw^{\mathrm{final}} \leq 0.08\right].
+  \mathrm{success}=\mathbb{I}[\distw^{\mathrm{final}}\leq0.08].
   \label{eq:success}
 \end{equation}
-We use the archived evaluation tolerance of 0.08 for task completion and additionally report 0.05 and 0.10 to expose threshold sensitivity. At 0.05, the grounded suites yield 0/4 and 0/8, while the semantic-MPC suite yields 3/18. The two thresholds therefore distinguish completion under the project criterion from tighter placement precision.
+The archived 0.08 tolerance is the primary criterion; 0.05 is also reported to distinguish completion from tighter placement. All counts retain their own experimental denominator. In particular, the 18-run semantic suite measures control of the selected target, whereas the independent nine-run language and target-image studies measure grounding against labels specified outside the controller.
 
-Each live semantic row carries an explicit evaluation scope so that its denominator matches the question being tested. The 18 selected-target control rows comprise 15 fixed-target controls, one natural-language instruction, one target-image interface control, and one scene-selection control. Language grounding is evaluated on the instruction row (1/1 requested-to-selected match and joint success), while target-image grounding is evaluated on the independent nine-run matrix (8/9); the aggregate 18/18 reports selected-target control completion.
-
-For the new target-image matrix, we distinguish a \emph{pre-satisfied} run, for which the true target is already within the threshold before the first action, from an \emph{active control} trial, which starts outside the threshold and executes at least one action. \emph{Joint active success} requires both correct target-image semantic selection and active control success. This prevents a zero-step terminal state from being counted as controller evidence.
-
-\subsection{Evidence Artifacts}
-All numerical results in this paper are extracted from the study package. The main evidence files are:
-\begin{itemize}
-\setlength{\itemsep}{0pt}
-\item sanitized per-run and aggregate CSVs for the fresh raw-MPC sweep, semantic suite, target-image matrix, event controls, semantic-fault audit, and visual-feedback test;
-\item supplement CSVs for exact method parameters, checkpoint/code hashes, target-image selection, and VLM cache status;
-\item publication figures and selected qualitative frames used as visual evidence; raw service logs and videos remain outside the sanitized public package;
-\item a portable robustness-edge audit CSV covering occlusion, viewpoint proxy, brightness shift, and unknown-target rejection, together with its four input images.
-\end{itemize}
-  These artifacts bind every reported quantity to a run-level record. Formal VLM calls use the project's \texttt{CodexCLIClient} with the \texttt{codex} backend and GPT-5.5 alias; an isolated \texttt{CODEX\_HOME} supplies runtime configuration, and strict no-cache controls record zero cache hits. The public v1.0.10 evidence package at \url{https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit} includes portable inputs, reproduction instructions, parameters, figure sources, and separate runtime-asset and source-snapshot manifests. Third-party model weights are obtained from their original sources.
-
-\section{Method}
-\subsection{Execution-Authority Audit}
-We represent each run by the tuple $(g_{\mathrm{req}},g_{\mathrm{sel}},s_t,a_t^{\mathrm{raw}},a_t^{\mathrm{exec}},y)$: the requested target, selected target, control-state source, raw planner action, executed action, and terminal outcome. This representation separates three questions that an aggregate success rate conflates: whether semantic grounding selects the intended object, whether the planner or a feedback law controls the environment, and whether the resulting trajectory reaches the target. Figure~\ref{fig:method} maps the common input and logging pipeline to the evidence branches.
-
-The branches act as attribution probes. The raw branch executes $a_t^{\mathrm{raw}}$; the grounded branch logs that action but executes a state-feedback correction; the semantic branch combines target selection with a state-feedback controller; and the visual-feedback branch replaces oracle state with detector/tracker estimates while retaining the semantic controller. Matched seeds and explicit state-source labels make the transition from semantic correctness to closed-loop execution directly measurable.
-
-\subsection{Unmodified Reproduction Chain}
-The unmodified reproduction follows a VLMPC-style loop. A task input is grounded to a target, candidate action sequences are sampled, a visual prediction model forecasts future observations, and a cost function ranks the candidates before the first action is executed. Controller comparison includes baseline, improved, literature, and literature-v2 settings. Parameter ablation varies sampling budget and cost settings.
-
-This branch applies no final-action state-feedback correction, so the raw candidate-ranking output retains execution authority. It provides the reference point for the feedback-source and action-authority comparisons that follow.
-
-\subsection{Codex CLI VLM Adapter}
-Formal online VLM calls are executed through the local \texttt{CodexCLIClient}. For each \texttt{complete(prompt, image\_paths)} call, the adapter stages image attachments in an ASCII-only temporary directory when the project path contains non-ASCII characters, sends the prompt through standard input, and launches an ephemeral CLI request equivalent to
-\begin{center}
-\texttt{codex exec --skip-git-repo-check --ephemeral --color never}\newline
-\texttt{-C <ASCII workdir> -o <temporary output> -m gpt-5.5 -i <image>}
-\end{center}
-The response is read from the temporary output file and parsed for target, subtask, or re-query state. An isolated \texttt{CODEX\_HOME} supplies runtime configuration while keeping credentials outside the source tree. When enabled, the cache key combines the model configuration, prompt, and image-content hashes; all formal event and language controls disable the cache and record zero cache hits. The CLI path supplies the evidence reported here, while an OpenAI-compatible backend remains available for development.
-
-\subsection{Archived Implementation Parameters}
-Table~\ref{tab:methodparams} summarizes the evaluated implementation parameters. The unmodified planner uses horizon $H=20$, action dimension 2, and a correlated-noise sampler with $\beta=0.5$. The command-line defaults are 200 samples and replan frequency 5, and the archived ablation contributes eight recorded sampling and cost configurations. The literature-style cost is
-\begin{equation}
-\begin{split}
-J ={}& d_{\mathrm{obj,goal}} + 0.35d_{\mathrm{contact}} +0.15d_{\mathrm{arm,obj}}
- + 18.0J_{\mathrm{align}}  \\
-&+24.0J_{\mathrm{obs}} -1.2\Delta d
- + 12.0\mathbb{I}[\Delta d < 1.0],
-\end{split}
-\label{eq:cost}
-\end{equation}
-with obstacle decay 42 pixels. In the close-range branch, the contact, alignment, progress-reward, and non-progress terms are changed to 0.10, 6.0, 1.8, and 20.0, respectively. These recovered values define the evaluated implementation.
+Each run is represented as $(g_{\mathrm{req}},g_{\mathrm{sel}},s_t,a_t^{\mathrm{raw}},a_t^{\mathrm{exec}},y)$: requested and selected targets, control-state source, raw action, executed action, and terminal outcome. The repository contains per-run CSVs, exact parameter records, source and asset manifests, figure scripts, and an automated consistency check. Thus the compact tables below summarize, rather than replace, the run-level evidence.
 
 \begin{table}[!t]
 \centering
 \caption{Recoverable implementation parameters from code, metrics, and supplement CSVs.}
 \label{tab:methodparams}
 \scriptsize
-\begin{tabular}{@{}p{0.33\columnwidth}@{\hspace{4pt}}p{0.63\columnwidth}@{}}
+\renewcommand{\arraystretch}{0.80}
+\begin{tabular}{@{}p{0.27\columnwidth}@{\hspace{3pt}}p{0.69\columnwidth}@{}}
 \toprule
 Parameter & Value or rule used in the combined audit \\
 \midrule
@@ -170,70 +151,60 @@ Online VLM & CodexCLIClient; local \texttt{codex exec -m gpt-5.5}; isolated \tex
 Success threshold & evaluation tolerance $\distw\leq0.08$; strict audit also reports 0.05 and 0.10 \\
 \bottomrule
 \end{tabular}
+\renewcommand{\arraystretch}{1.0}
 \end{table}
 
-The runtime-asset manifest records SHA-256 prefixes for the externally obtained video-prediction, detector, and tracker assets. The source manifest separately records the executed-source and public-snapshot hashes. Five listed Python files are byte-identical. For \texttt{main.py}, the executed-source prefix is \texttt{d8078e7cba86} and the public-snapshot prefix is \texttt{f98caece7442}; the difference is limited to replacing a drive-local dependency fallback with environment-based configuration, without changing controller logic.
+\subsection{Attribution Branches}
+Figure~\ref{fig:method} shows the common audit path. The \emph{raw} branch grounds a target, samples candidate sequences, predicts visual futures, ranks them, and executes $a_t^{\mathrm{raw}}$. Its horizon is 20 with two-dimensional actions; the default budget is 200 candidate samples with replanning every five steps. The fresh sweep uses four controller variants and four seeds, and an archived ablation covers eight sampling/cost configurations; exact costs, detector settings, event thresholds, and source hashes are supplied in the supplement.
 
-\subsection{Grounded Original MPC}
-Grounded original MPC isolates the effect of final-action feedback while preserving the raw planner trace. Each raw MPC action is recorded before a bounded simulator-state correction determines the action executed in the environment. Across the 12 grounded runs (4 controller-comparison runs and 8 ablation runs), every run contains 23 raw planner actions and 23 feedback overrides. The 23/23 replacement rate makes the transfer of execution authority directly observable instead of attributing the resulting trajectory to the raw planner.
+The \emph{grounded} branch preserves and logs the raw planner call but executes a bounded simulator-state correction. The feedback law stages the end effector, establishes contact, and pushes toward the goal; the supplement provides its gains and phase thresholds. Logging both actions makes authority observable: all 12 grounded runs contain 23 raw actions and 23 replacements.
 
-The feedback action uses object, end-effector, and goal positions from simulator state. Let $\hat{d}_{\mathrm{push}}=(x_{\mathrm{goal}}-x_{\mathrm{obj}})/\|x_{\mathrm{goal}}-x_{\mathrm{obj}}\|$ and $x_{\mathrm{contact}}=x_{\mathrm{obj}}-0.06\hat{d}_{\mathrm{push}}$. The controller first stages the end effector near a side-clearance point, then moves to contact, and finally pushes:
-\begin{equation}
-  u_t = \mathrm{clip}\left(\alpha \hat{d}_{\mathrm{push}} +
-  \beta(x_{\mathrm{contact}} - x_{\mathrm{ee}}), -0.08, 0.08\right).
-  \label{eq:feedback}
-\end{equation}
-In the push phase, $\alpha=0.075$ and $\beta=0.45$; the stage/contact phases instead use a step-limited move of at most 0.06.
+The \emph{semantic} branch accepts fixed labels, instructions, target images, or VLM scene selection and applies the same state-feedback controller to the selected target. It retains receding-horizon execution and logging, but no raw video-prediction sampling has action authority. The \emph{visual-feedback} branch holds that semantic controller and the seeds fixed while replacing simulator state with YOLO/PySOT detector-tracker estimates. This paired change isolates feedback source.
 
-\subsection{Semantic MPC}
-Semantic MPC isolates target selection from low-level state-feedback execution. It accepts fixed labels, language instructions, target images, or free VLM scene selection, then converts the selected target into a bounded feedback push. The \texttt{auto|vlm|vision} target-image interface sends the target image and current scene image to the configured VLM and asks it to choose among visible candidates. The branch retains receding-horizon execution and logging, but activates no raw video-prediction sampling budget ($N_{\mathrm{raw}}=0$); the state-feedback law has execution authority. This separation tests whether a selected semantic target can be converted into stable closed-loop control when state is available.
-
-\subsection{Event-Triggered VLM Re-query}
-Event-triggered re-query tests when semantic state should be refreshed. For the semantic branch, progress is measured in world-coordinate target distance using a stagnation window of 4 and a minimum progress threshold of 0.002. Fresh matched controls compare no-event and event-enabled runs without forcing the initial query. All controls disable the cache, record zero cache hits, and log fresh \texttt{CodexCLIClient} responses. Natural re-query fires in all three event-enabled runs; seed-matched final distances remain identical to the no-event controls. This comparison separates correct trigger execution from incremental benefit under conditions that already succeed.
-
-A paired fault intervention then measures recovery capacity. Each of six seeds begins with the true target replaced by a deliberately wrong target (blue cube instead of red moon). The treatment issues one explicitly labeled audit re-query at step 3, whereas the control retains the corrupted target. Evaluation uses the independently specified true target. The \texttt{CodexCLIClient} treatment repairs the semantic state in 6/6 runs and reaches the true-target threshold in 5/6, compared with 0/6 for the no-requery controls. The intervention therefore provides direct evidence that re-query can restore corrupted semantic state.
-
-An independent language-repeat audit separates language grounding from aggregate controller success. Three instructions (red moon, blue cube, and yellow pentagon) are each evaluated at seeds 42--44 through the same \texttt{CodexCLIClient} path, with the expected target specified independently of the controller output. All nine strict no-cache runs produce one fresh VLM response, match the expected target, and meet the 0.08 control threshold.
+Formal language, target-image, and re-query calls use the project's \texttt{CodexCLIClient} with the GPT-5.5 model alias. Prompts are passed through standard input, images through CLI attachments, and non-ASCII paths are staged in an ASCII-only temporary directory. An isolated \texttt{CODEX\_HOME} keeps credentials outside the source tree. The reported language and event studies disable caching and record zero cache hits.
 
 \begin{table*}[!t]
 \centering
 \caption{Controller branches used to attribute semantic role, state source, and executed-action authority.}
 \label{tab:branchroles}
 \scriptsize
+\renewcommand{\arraystretch}{0.90}
 \setlength{\tabcolsep}{2pt}
 \begin{tabular}{@{}p{0.15\textwidth}p{0.23\textwidth}p{0.25\textwidth}p{0.22\textwidth}p{0.11\textwidth}@{}}
 \toprule
-Branch & Semantic/planning role & Actual MPC role & Executed action authority & State source \\
+Branch & Semantic/planning role & Actual MPC role & Executed-action authority & State source \\
 \midrule
-Unmodified VLMPC & Ground target; sample action sequences; predict visual futures & Candidate ranking with a video-prediction cost; first raw action is executed & Raw planner action & Visual observations only \\
-Grounded original MPC & Preserve the same raw planner call and log its actions & Raw planner remains in the loop for comparison and traceability & Privileged state-feedback correction replaces the raw action (23/23 in all 12 runs) & Simulator state \\
-Semantic MPC & Select target from label, language, image, or VLM scene query & Receding-horizon execution/logging; no active raw video-prediction sampling ($N_{\mathrm{raw}}=0$) & Privileged state-feedback push law & Simulator state \\
-Visual feedback & Select a fixed target; estimate control state from RGB observations & Receding-horizon detector/tracker feedback; no simulator-state accessor & Visual detector/tracker feedback law & RGB observations \\
-Event-control supplement & Monitor stagnation/semantic events and refresh the VLM instruction when triggered & Event logic controls query timing, not the low-level push optimizer & Same semantic-MPC feedback action & Simulator state \\
+Unmodified VLMPC & Ground target; sample sequences; predict visual futures & Candidate ranking with a video-prediction cost; first raw action is executed & Raw planner action & Visual observations \\
+Grounded original MPC & Preserve and log the raw planner call & Raw planner retained for comparison and traceability & State-feedback correction replaces raw action (23/23 in all 12 runs) & Simulator state \\
+Semantic MPC & Select from label, language, image, or scene query & Receding-horizon execution/logging; no active raw video-prediction sampling & State-feedback push law & Simulator state \\
+Visual feedback & Select a fixed target; estimate state from RGB & Detector/tracker feedback under the same semantic controller & Visual feedback law & RGB observations \\
+Event-control supplement & Monitor stagnation or semantic events and refresh the query & Event logic controls query timing, not the low-level push law & Semantic-MPC feedback action & Simulator state \\
 \bottomrule
 \end{tabular}
 \setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.0}
 \end{table*}
 
 \begin{figure*}[!t]
   \centering
-  \includegraphics[width=0.98\textwidth]{method_pipeline_v9.pdf}
-  \caption{Execution-authority overview. Explicit state-source and action-authority labels separate raw planning, semantic selection, feedback execution, and re-query recovery. Matched event controls distinguish trigger execution from recovery benefit.}
+  \includegraphics[width=0.93\textwidth]{method_pipeline_v9.pdf}
+  \caption{Execution-authority audit. Explicit state-source and action-authority labels separate semantic selection, raw visual planning, feedback execution, and re-query recovery.}
   \label{fig:method}
 \end{figure*}
 
-\section{Experiments}
-\subsection{Evidence Design}
-Three evidence groups support distinct attribution questions. \textbf{Raw planning} evaluates the four-variant, four-seed video-prediction chain and eight recorded parameter configurations. \textbf{Execution and semantic control} measures action replacement, language and image grounding, and recovery under oracle state feedback. \textbf{Feedback source} holds the semantic controller and seeds fixed while replacing oracle state with detector/tracker estimates. This design aligns each success rate with the component whose behavior it measures.
+\subsection{Re-query Intervention}
+Natural-event controls use a four-step stagnation window and a minimum progress of 0.002 world-distance units. Three event-enabled runs trigger a fresh query, while matched no-event runs retain identical final distances because both conditions already succeed. A separate intervention supplies the missing recovery condition: six seeds begin with the true red-moon target replaced by blue cube; treatment issues a forced audit query at step 3, whereas control retains the corrupted target. Evaluation always uses the independently specified true target.
 
-\subsection{Raw-Chain Reference}
-Table~\ref{tab:unmodified} establishes the raw-chain reference. Across four controller variants and seeds 45--48, all 16 runs remain above the 0.08 tolerance, with variant means from 0.3134 to 0.3358 and an aggregate mean of 0.3245. The outcome is unchanged at 0.05 and 0.10, and the eight recorded parameter configurations also yield 0/8. In combination with the matched feedback-source experiment below, these results rule out the tested controller and parameter variants as sufficient explanations for stable execution.
+\section{Experiments and Results}
+\subsection{Evidence Design and Raw Reference}
+The study separates raw planning, execution authority, feedback source, grounding, and recovery. Raw planning uses four controller variants at seeds 45--48 plus eight archived configurations; the oracle--visual comparison fixes controller and seeds 45--50; language and target-image studies repeat independent requests at seeds 42--44. Tables~\ref{tab:unmodified}--\ref{tab:perrun} and Figs.~\ref{fig:distance}--\ref{fig:threshold} keep these denominators and distributions visible.
 
 \begin{table}[!t]
 \centering
-\caption{Raw-chain reference across seeds 45--48 and eight recorded parameter configurations. Final distance is mean $\pm$ sample SD; the fresh sweep and archived configurations retain separate denominators.}
+\caption{Raw-chain reference across seeds 45--48 and eight recorded parameter configurations.}
 \label{tab:unmodified}
-\footnotesize
+\scriptsize
+\setlength{\tabcolsep}{2pt}
 \begin{tabular}{@{}p{0.25\columnwidth}cccc@{}}
 \toprule
 Variant/suite & Runs & Succ. & Final dist. & Range \\
@@ -242,230 +213,216 @@ Baseline & 4 & 0/4 & $0.3358{\pm}0.1099$ & 0.199--0.436 \\
 Improved & 4 & 0/4 & $0.3354{\pm}0.1048$ & 0.224--0.436 \\
 Literature & 4 & 0/4 & $0.3134{\pm}0.1325$ & 0.163--0.436 \\
 Literature-v2 & 4 & 0/4 & $0.3134{\pm}0.1325$ & 0.163--0.436 \\
-All fresh raw runs & 16 & 0/16 & $0.3245{\pm}0.1085$ & 0.163--0.436 \\
+All fresh raw & 16 & 0/16 & $0.3245{\pm}0.1085$ & 0.163--0.436 \\
 Archived ablation & 8 & 0/8 & $0.2534{\pm}0.0304$ & 0.216--0.294 \\
 \bottomrule
 \end{tabular}
-\vspace{2pt}
+\vspace{1pt}
 
-\footnotesize Threshold sensitivity at 0.05/0.08/0.10 is 0/16, 0/16, 0/16 for the fresh raw sweep and 0/8, 0/8, 0/8 for the archived ablation.
+\scriptsize At 0.05/0.08/0.10: fresh raw 0/16, 0/16, 0/16; archived ablation 0/8, 0/8, 0/8.
+\setlength{\tabcolsep}{6pt}
 \end{table}
 
-\subsection{Execution-Authority and Feedback-Source Attribution}
-Table~\ref{tab:diagnostic} identifies the subsystem that changes the outcome. Under the same semantic controller and seeds 45--50, oracle feedback reaches 6/6 while detector/tracker feedback reaches 0/6; the paired visual-minus-oracle final-distance gap is $0.2548\pm0.1453$. Grounded logs provide the complementary authority trace: all 12 runs replace 23/23 raw planner actions before execution. The broader semantic suite reaches 18/18 selected-target controls at the 0.08 criterion, with 15/15 fixed-target controls, one language control, one target-image interface control, and one scene-selection control. The independent target-image matrix contributes 8/9 semantic matches and joint active successes, while the language repeat audit contributes 9/9 matches and 9/9 joint controls.
-
-The branch comparison therefore separates three claims: semantic target selection can be evaluated independently; oracle state feedback can stabilize execution; and replacing oracle state with the implemented visual estimates is the dominant tested bottleneck. At 0.05, the selected-target semantic suite reaches 3/18, so the 0.08 and 0.05 columns jointly report completion and placement precision.
+\subsection{Authority and Feedback Source}
+Raw variants remain above tolerance. Grounded logs expose the mechanism that changes the outcome: all 12 runs replace every raw action (23/23), while the paired state-source experiment yields 6/6 with oracle feedback and 0/6 with visual estimates, a per-seed gap of $0.2548\pm0.1453$.
 
 \begin{table*}[!t]
 \centering
-\caption{Branch-level results for execution authority, semantic grounding, and feedback source. State source is reported explicitly so matched oracle and visual rows can be compared without pooling distinct controllers.}
+\caption{Branch-level results. State source remains explicit so oracle and visual rows are not pooled.}
 \label{tab:diagnostic}
 \scriptsize
+\renewcommand{\arraystretch}{0.90}
 \setlength{\tabcolsep}{2pt}
 \begin{tabular}{@{}p{0.16\textwidth}p{0.06\textwidth}p{0.09\textwidth}p{0.30\textwidth}p{0.17\textwidth}p{0.12\textwidth}@{}}
 \toprule
-Suite & Runs & Control succ. & Evidence and semantic check & Final dist. & State source \\
+Suite & Runs & Control & Evidence and semantic check & Final dist. & State source \\
 \midrule
-Grounded controller & 4 & 4/4 & target fixed; 23/23 override & $0.0643{\pm}0.0000$ & oracle \\
-Grounded ablation & 8 & 8/8 & target fixed; 23/23 override & $0.0643{\pm}0.0000$ & oracle \\
-Event controls & 9 & 9/9 & matched controls; natural trigger 3/3 enabled & $0.0587{\pm}0.0233$ matched & oracle \\
-Semantic MPC live & 18 & 18/18* & 15/15 fixed; language 1/1; image 1/1; scene 1/1 & $0.0641{\pm}0.0150$ & oracle \\
+Grounded controller & 4 & 4/4 & fixed target; 23/23 override & $0.0643{\pm}0.0000$ & oracle \\
+Grounded ablation & 8 & 8/8 & fixed target; 23/23 override & $0.0643{\pm}0.0000$ & oracle \\
+Event controls & 9 & 9/9 & matched; natural trigger 3/3 enabled & $0.0587{\pm}0.0233$ matched & oracle \\
+Semantic MPC live & 18 & 18/18* & 15 fixed; one each language/image/scene & $0.0641{\pm}0.0150$ & oracle \\
 Target-image matrix & 9 & 8/9 joint & semantic 8/9; no pre-satisfied & $0.0950{\pm}0.0932$ & oracle \\
-Oracle feedback (paired) & 6 & 6/6 & fixed target; seeds 45--50 & $0.0612{\pm}0.0206$ & oracle \\
-Visual feedback & 6 & 0/6 & same semantic controller; seeds 45--50 & $0.3160{\pm}0.1439$ & visual \\
-Semantic-fault audit & 12 paired & 5/6 treatment & repair 6/6; control 0/6 & $0.0639{\pm}0.0157$ treatment & oracle \\
-Language repeats & 9 & 9/9 joint & 3 instructions x 3 seeds; Codex no-cache & $0.0661{\pm}0.0191$ & oracle \\
+Oracle feedback & 6 & 6/6 & fixed target; seeds 45--50 & $0.0612{\pm}0.0206$ & oracle \\
+Visual feedback & 6 & 0/6 & same controller and seeds & $0.3160{\pm}0.1439$ & visual \\
+Semantic-fault audit & 12 paired & 5/6 treat. & repair 6/6; control 0/6 & $0.0639{\pm}0.0157$ treatment & oracle \\
+Language repeats & 9 & 9/9 joint & 3 instructions $\times$ 3 seeds; no cache & $0.0661{\pm}0.0191$ & oracle \\
 \bottomrule
 \end{tabular}
-\vspace{2pt}
-\parbox{0.97\textwidth}{\footnotesize * The 18-row semantic suite measures selected-target control: 15 fixed-target controls and one each for language, target-image interface, and free scene selection. Independent grounding rates are reported by the nine-run language and target-image evaluations.}
+\vspace{1pt}
+\parbox{0.97\textwidth}{\scriptsize *Selected-target control. Independent language and target-image evaluations provide grounding denominators.}
 \setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.0}
 \end{table*}
 
 \begin{table*}[!t]
 \centering
-\caption{Condition-wise variability for the semantic-MPC suite. Values are mean $\pm$ sample SD of final world distance; groups identify input-form, target, seed, and controller-setting coverage.}
+\caption{Condition-wise variability for the semantic-MPC suite (mean $\pm$ sample SD).}
 \label{tab:variance}
 \scriptsize
-\begin{tabular}{@{}p{0.20\textwidth}ccccc p{0.25\textwidth}@{}}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.18\textwidth}ccccc p{0.25\textwidth}@{}}
 \toprule
 Condition & $n$ & Mean $\pm$ SD & $\leq0.05$ & $\leq0.08$ & Target/seed scope & Interpretation \\
 \midrule
 Input forms & 4 & $0.0663\pm0.0041$ & 0/4 & 4/4 & 3 forms + target image & Input-form comparison \\
 Multi-target & 8 & $0.0678\pm0.0167$ & 1/8 & 8/8 & 8 target objects & Small target sweep \\
-Multi-seed & 3 & $0.0587\pm0.0233$ & 1/3 & 3/3 & red moon, seeds 42/43/44 & Seed variability \\
-Semantic ablation & 3 & $0.0568\pm0.0136$ & 1/3 & 3/3 & default/precise/fast & Semantic-control settings \\
-All latest runs & 18 & $0.0641\pm0.0150$ & 3/18 & 18/18 & heterogeneous union & Aggregate selected-target control \\
+Multi-seed & 3 & $0.0587\pm0.0233$ & 1/3 & 3/3 & red moon, seeds 42--44 & Seed variability \\
+Semantic ablation & 3 & $0.0568\pm0.0136$ & 1/3 & 3/3 & default/precise/fast & Controller settings \\
+All latest runs & 18 & $0.0641\pm0.0150$ & 3/18 & 18/18 & heterogeneous union & Selected-target control \\
 \bottomrule
 \end{tabular}
+\setlength{\tabcolsep}{6pt}
 \end{table*}
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{final_distance_distribution_v9.pdf}
-  \caption{Final-distance distributions across the fresh raw-MPC sweep, archived grounded diagnostics, live semantic and target-image suites, and the visual-feedback test. Each dot is one run and the horizontal segment is the within-suite median.}
+  \includegraphics[width=0.96\columnwidth]{final_distance_distribution_v9.pdf}
+  \caption{Final-distance distributions across raw, grounded, semantic, target-image, and visual-feedback suites.}
   \label{fig:distance}
 \end{figure}
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{threshold_sensitivity_v9.pdf}
-  \caption{Threshold sensitivity at 0.05, 0.08, and 0.10. The outlined 0.08 column is the project completion criterion: raw MPC remains 0/16, whereas selected-target semantic control reaches 18/18. The stricter 0.05 column (3/18) exposes the remaining placement-precision gap.}
+  \includegraphics[width=0.96\columnwidth]{threshold_sensitivity_v9.pdf}
+  \caption{Threshold sensitivity at 0.05, 0.08, and 0.10. The outlined 0.08 column is the project criterion.}
   \label{fig:threshold}
 \end{figure}
 
-\subsection{Claim-to-Run Evidence}
-Table~\ref{tab:perrun} links each aggregate claim to portable run records containing seeds, labels, final distance, steps, runtime, request counts, selector metadata, and sanitized provenance. The digest makes the contrast across raw planning, oracle execution, visual feedback, grounding, and recovery visible without merging their denominators.
-
 \begin{table*}[!t]
 \centering
-\caption{Per-run digest extracted from archived and latest CSV files. Exec. S is distance-threshold success under $\distw^{\mathrm{final}}\leq0.08$.}
+\caption{Per-run digest extracted from archived and latest CSV files. Exec. S uses $\distw^{\mathrm{final}}\leq0.08$.}
 \label{tab:perrun}
 \scriptsize
-\begin{tabular}{@{}p{0.17\textwidth}@{\hspace{4pt}}p{0.36\textwidth}@{\hspace{4pt}}p{0.13\textwidth}@{\hspace{4pt}}p{0.10\textwidth}@{\hspace{4pt}}p{0.12\textwidth}@{}}
+\renewcommand{\arraystretch}{0.88}
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}p{0.17\textwidth}p{0.36\textwidth}p{0.13\textwidth}p{0.10\textwidth}p{0.12\textwidth}@{}}
 \toprule
 Suite & Final-distance summary & Range & Exec. S & Semantic/VLM evidence \\
 \midrule
-Fresh raw MPC & 4 variants $\times$ 4 seeds; aggregate mean $0.3245\pm0.1085$ & 0.163--0.436 & 0/16 & raw visual-prediction chain \\
-Archived raw ablation & eight logged parameter settings & 0.216--0.294 & 0/8 & archived comparison \\
+Fresh raw MPC & 4 variants $\times$ 4 seeds; $0.3245\pm0.1085$ & 0.163--0.436 & 0/16 & raw visual chain \\
+Archived raw & eight parameter settings & 0.216--0.294 & 0/8 & archived comparison \\
 Grounded controller & all 0.064 & 0.064--0.064 & 4/4 & fixed target \\
 Grounded ablation & all 0.064 & 0.064--0.064 & 8/8 & fixed target \\
-Event controls & matched no-event/event distances identical by seed & 0.033--0.079 & 9/9 & natural trigger 3/3; zero incremental distance change \\
-Semantic MPC live & min 0.030; median 0.064; max 0.0798 & 0.030--0.0798 & 18/18 & 15/15 fixed controls; language 1/1; image 1/1; scene 1/1 \\
-Target-image matrix & 8 semantic matches; one yellow-pentagon error & 0.033--0.339 & 8/9 joint & all nine are active trials \\
-Visual feedback & detector/tracker feedback, seeds 45--50 & 0.097--0.487 & 0/6 & no simulator-state access \\
-Semantic-fault revision audit & treatment repairs target in 6/6; control 0/6 & 0.044--0.385 & 5/6 treatment & synthetic re-query; natural count 0 \\
-Language repeats & three instructions x seeds 42--44; 9/9 joint & 0.034--0.0799 & 9/9 & Codex no-cache; independent labels \\
+Event controls & matched event/no-event distances identical & 0.033--0.079 & 9/9 & natural trigger 3/3 \\
+Semantic MPC live & min 0.030; median 0.064; max 0.0798 & 0.030--0.0798 & 18/18 & 15 fixed; language/image/scene \\
+Target-image matrix & one yellow-pentagon error & 0.033--0.339 & 8/9 joint & all active trials \\
+Visual feedback & detector/tracker, seeds 45--50 & 0.097--0.487 & 0/6 & no simulator state \\
+Fault revision audit & treatment repairs 6/6; control 0/6 & 0.044--0.385 & 5/6 treatment & forced re-query \\
+Language repeats & 3 instructions $\times$ seeds 42--44 & 0.034--0.0799 & 9/9 & no cache \\
 \bottomrule
 \end{tabular}
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.0}
 \end{table*}
 
-\subsection{Re-query Trigger and Recovery}
-The event study separates trigger behavior from recovery. The 2026-09-22 set contains three matched no-event controls, three event-enabled controls, and three forced scene-selection audits at seeds 42--44. Natural re-query fires in 3/3 enabled runs, while no-event and event-enabled runs retain identical seed-matched final distances. Every row uses strict no-cache mode and records zero cache hits. The paired semantic-fault intervention then supplies the missing recovery condition by evaluating both treatments against an independently specified true target.
+\subsection{Grounding and Recovery}
+Independent labels give 9/9 language matches. The target-image selector reaches 4/4 versus 1/4 for the earlier heuristic; its active end-to-end matrix reaches 8/9. Event controls separate a trigger that executes from recovery that changes an erroneous semantic state. Tables~\ref{tab:event}--\ref{tab:targetmatrix} and Fig.~\ref{fig:eventtarget} retain the per-condition evidence.
 
 \begin{table}[!t]
 \centering
-\caption{Fresh event re-query controls from the strict no-cache 2026-09-22 experiment.}
+\caption{Strict no-cache event re-query controls.}
 \label{tab:event}
 \scriptsize
 \setlength{\tabcolsep}{2pt}
 \begin{tabular}{@{}p{0.34\columnwidth}p{0.14\columnwidth}p{0.15\columnwidth}p{0.27\columnwidth}@{}}
 \toprule
-Case & Natural re-query & Final dist. & Note \\
+Case & Natural query & Final dist. & Note \\
 \midrule
-No-event controls, seeds 42--44 & 0 & 0.0332--0.0787 & 3/3 success; 3 fresh responses \\
-Event-enabled controls, seeds 42--44 & 1 each & 0.0332--0.0787 & 3/3 success; 6 fresh responses \\
-Forced scene audit, seeds 42--44 & natural in 1/3; forced in all 3 & 0.0339--0.0725 & 3/3 success; 14 fresh responses \\
+No-event, seeds 42--44 & 0 & 0.0332--0.0787 & 3/3; 3 fresh responses \\
+Event-enabled, seeds 42--44 & 1 each & 0.0332--0.0787 & 3/3; 6 fresh responses \\
+Forced scene audit, seeds 42--44 & 1/3; forced all & 0.0339--0.0725 & 3/3; 14 fresh responses \\
 \bottomrule
 \end{tabular}
+\setlength{\tabcolsep}{6pt}
 \end{table}
 
 \begin{table}[!t]
 \centering
-\caption{Controlled semantic-fault re-query audit. The wrong initial target is injected deliberately; success is measured against the independent true target.}
+\caption{Controlled semantic-fault re-query audit.}
 \label{tab:eventfault}
 \scriptsize
-\setlength{\tabcolsep}{2pt}
+\setlength{\tabcolsep}{1.5pt}
 \begin{tabular}{@{}p{0.27\columnwidth}cccc@{}}
 \toprule
-Condition & $n$ & Semantic repair & True-target success & Final dist. \\
+Condition & $n$ & Repair & True success & Final dist. \\
 \midrule
-No re-query control & 6 & 0/6 & 0/6 & $0.2435\pm0.0904$ \\
-Forced re-query (Codex) & 6 & 6/6 & 5/6 & $0.0639\pm0.0157$ \\
+No-query control & 6 & 0/6 & 0/6 & $0.2435\pm0.0904$ \\
+Forced query (Codex) & 6 & 6/6 & 5/6 & $0.0639\pm0.0157$ \\
 \bottomrule
 \end{tabular}
+\setlength{\tabcolsep}{6pt}
 \end{table}
-
-Under the injected fault, re-query restores the correct target in 6/6 runs and reaches the true-target threshold in 5/6, whereas the paired controls remain at 0/6. One treatment run ends just above 0.08. Together, the natural controls show that the trigger path executes, while the intervention shows that a fresh query can recover a corrupted semantic state when recovery is required.
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{target_event_audit_v9.pdf}
-  \caption{Target-image and event-control audits. (a) The live VLM semantic selector is correct in all four audited cases, whereas the old full-frame heuristic is correct in only one. (b) Fresh strict no-cache matched controls have identical no-event and event-enabled final distances by seed; all nine rows record zero cache hits.}
+  \includegraphics[width=0.96\columnwidth]{target_event_audit_v9.pdf}
+  \caption{Target-image and event audits: selector accuracy and matched no-cache event controls.}
   \label{fig:eventtarget}
 \end{figure}
 
-\subsection{Target-Image Grounding}
-The VLM selector improves target-image grounding from 1/4 matches with the detector/corner heuristic to 4/4 in the four-case semantic audit. It receives the target image and current scene image, selects among visible scene objects, and records the raw response. The end-to-end matrix then repeats three targets across seeds 42--44, yielding 8/9 semantic matches and 8/9 joint active successes. The retained yellow-pentagon error identifies the remaining grounding failure surface.
-
 \begin{table}[!t]
 \centering
-\caption{Target-image semantic-selection audit. VLM semantic choice uses the project VLM backend with target-image and scene-image inputs.}
+\caption{Target-image semantic-selection audit.}
 \label{tab:targetimage}
 \scriptsize
 \setlength{\tabcolsep}{1.5pt}
-\begin{tabular}{@{}p{0.18\columnwidth}p{0.14\columnwidth}p{0.16\columnwidth}p{0.16\columnwidth}p{0.06\columnwidth}@{}}
+\begin{tabular}{@{}p{0.22\columnwidth}p{0.18\columnwidth}p{0.18\columnwidth}p{0.18\columnwidth}c@{}}
 \toprule
-Case & Exp. & Old & VLM & OK \\
+Case & Expected & Old & VLM & OK \\
 \midrule
 Red-moon crop & red moon & blue cube & red moon & yes \\
 Blue-cube crop & blue cube & blue cube & blue cube & yes \\
-Yellow-pent. crop & yellow pentagon & blue cube & yellow pentagon & yes \\
+Yellow-pent. crop & yellow pent. & blue cube & yellow pent. & yes \\
 Archived frame & red moon & blue cube & red moon & yes \\
 \bottomrule
 \end{tabular}
 \setlength{\tabcolsep}{6pt}
 \end{table}
 
-\subsection{Target-Image End-to-End Evaluation}
-The end-to-end evaluation uses three manually specified target crops and seeds 42--44. The VLM selects a named scene object from the target and scene images, after which the semantic-MPC controller executes the selected target. All nine trials begin outside the 0.08 threshold and require active control. Eight select and control the intended object successfully; the yellow-pentagon run at seed 42 selects \emph{yellow star} and ends at 0.3386.
-
 \begin{table*}[!t]
 \centering
-\caption{Repeated target-image end-to-end matrix. Final distance is mean $\pm$ sample SD over all runs in the case. Active trials exclude runs already within the 0.08 threshold before the first action; joint active success requires correct semantic selection and active control success.}
+\caption{Repeated target-image end-to-end matrix. All trials begin outside the 0.08 threshold.}
 \label{tab:targetmatrix}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}p{0.18\textwidth}ccccc p{0.21\textwidth}@{}}
 \toprule
-Target-image case & Runs & VLM semantic match & Pre-satisfied & Active joint success & Final distance & Interpretation \\
+Case & Runs & VLM match & Pre-satisfied & Active joint & Final distance & Interpretation \\
 \midrule
-Red moon & 3 & 3/3 & 0 & 3/3 & $0.0587\pm0.0233$ & All three trials succeed \\
-Blue cube & 3 & 3/3 & 0 & 3/3 & $0.0623\pm0.0249$ & All three trials succeed \\
-Yellow pentagon & 3 & 2/3 & 0 & 2/3 & $0.1640\pm0.1512$ & Seed-42 semantic error; final distance 0.3386 \\
+Red moon & 3 & 3/3 & 0 & 3/3 & $0.0587\pm0.0233$ & All trials succeed \\
+Blue cube & 3 & 3/3 & 0 & 3/3 & $0.0623\pm0.0249$ & All trials succeed \\
+Yellow pentagon & 3 & 2/3 & 0 & 2/3 & $0.1640\pm0.1512$ & Seed-42 semantic error \\
 \midrule
-All cases & 9 & 8/9 & 0 & 8/9 & $0.0950\pm0.0932$ & Three targets $\times$ three seeds; one semantic miss \\
+All cases & 9 & 8/9 & 0 & 8/9 & $0.0950\pm0.0932$ & One semantic miss \\
 \bottomrule
 \end{tabular}
 \setlength{\tabcolsep}{6pt}
 \end{table*}
 
-The complete per-run table is included in the target-image CSV. The matrix expands the interface evaluation beyond a single run, and the retained miss localizes its error to semantic selection rather than low-level execution.
-
-\subsection{Bottleneck Attribution}
-The factor-isolating comparisons in Table~\ref{tab:symptoms} localize the dominant tested bottleneck. Controller and parameter variants leave the raw chain above tolerance, whereas direct action correction succeeds with a 23/23 replacement trace. Holding the semantic controller and seeds fixed then produces the decisive contrast: 6/6 with oracle state and 0/6 with visual estimates. Semantic grounding is comparatively strong but not saturated, as shown by 9/9 language matches and 8/9 target-image matches.
-
 \begin{table}[!t]
 \centering
-\caption{Factor-isolating evidence used to localize the dominant tested bottleneck.}
+\caption{Factor-isolating bottleneck evidence.}
 \label{tab:symptoms}
 \scriptsize
-\renewcommand{\arraystretch}{0.95}
-\begin{tabular}{@{}p{0.25\columnwidth}@{\hspace{4pt}}p{0.68\columnwidth}@{}}
+\renewcommand{\arraystretch}{0.90}
+\begin{tabular}{@{}p{0.25\columnwidth}@{\hspace{3pt}}p{0.69\columnwidth}@{}}
 \toprule
 Factor & Evidence and implication \\
 \midrule
-Raw planning &
-The fresh sweep is 0/16 and the recorded parameter configurations are 0/8; the tested planning variants do not reach the 0.08 completion criterion. \\
-Execution authority &
-Grounded runs succeed after state feedback replaces 23/23 raw actions in every run, directly identifying the feedback law as the acting controller. \\
-Feedback source &
-With the semantic controller and seeds fixed, oracle state yields 6/6 and visual estimates yield 0/6; the paired distance gap is $0.2548\pm0.1453$. \\
-Semantic grounding &
-No-cache language trials match 9/9 targets, while target-image trials match 8/9; the retained yellow-pentagon error identifies the remaining semantic miss. \\
+Raw planning & Fresh 0/16 and archived 0/8: tested variants do not reach completion. \\
+Execution authority & Grounded success follows 23/23 action replacement in every run. \\
+Feedback source & Fixed controller/seeds: oracle 6/6, visual 0/6; gap $0.2548\pm0.1453$. \\
+Semantic grounding & Language 9/9; target-image 8/9; retained miss is localized. \\
 \bottomrule
 \end{tabular}
 \renewcommand{\arraystretch}{1.0}
 \end{table}
 
-\subsection{Perception Stress Tests}
-The perception stress test probes target occlusion, a viewpoint proxy, brightness shift, and unsupported target names using four portable inputs. The detector retains the red-moon identity across the three image perturbations, with confidence decreasing from 0.902 to 0.632 under occlusion. Unsupported names are safely rejected instead of being mapped to known objects. These input-level results define the perturbations for the next matched closed-loop evaluation.
-
 \begin{table}[!t]
 \centering
-\caption{Robustness-edge audit for target detection and unknown-target handling.}
+\caption{Robustness-edge audit for detection and unknown-target handling.}
 \label{tab:robust}
-\footnotesize
+\scriptsize
 \begin{tabular}{lcc}
 \toprule
 Case & Status & Confidence \\
@@ -483,32 +440,24 @@ Unknown target & safe reject & -- \\
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{qualitative_frames_v9.png}
-  \caption{Representative frames from a logged oracle-feedback red-moon execution; quantitative outcomes are reported in the portable run tables.}
+  \includegraphics[width=0.96\columnwidth]{qualitative_frames_v9.png}
+  \caption{Representative frames from a logged oracle-feedback red-moon execution.}
   \label{fig:qualitative}
 \end{figure}
 
 \section{Discussion}
-\subsection{Main Finding}
-The central result is an attribution result, not an aggregate score. The raw video-prediction chain remains at 0/16, yet final-action state feedback replaces 23/23 planner actions and stabilizes every grounded run. More decisively, the same semantic controller and seeds 45--50 produce 6/6 successes with oracle state and 0/6 with detector/tracker feedback, with a paired visual-minus-oracle distance gap of $0.2548\pm0.1453$. Together, these comparisons identify feedback estimation and executed-action authority as the dominant tested determinants of closed-loop outcome.
+The audit turns a mixed full-pipeline outcome into a component-level diagnosis. Semantic grounding is strong across repeated language and target-image requests, and a fresh query can repair an injected semantic fault. Stable execution, however, depends on the state and action path: raw video prediction does not complete the task in the evaluated sweep, feedback replaces every raw action in the grounded diagnostics, and the same semantic controller separates sharply under oracle and visual feedback. This is precisely the distinction that aggregate success rates erase.
 
-The remaining experiments show that the higher-level mechanisms are independently functional. Strict no-cache language grounding reaches 9/9 target matches and joint controls, target-image grounding reaches 8/9, and forced re-query repairs 6/6 injected semantic faults with 5/6 true-target completions versus 0/6 controls. Natural re-query also fires in 3/3 enabled runs, although already-successful matched controls leave no distance margin for improvement. The execution-authority audit therefore converts a mixed full-pipeline outcome into specific evidence about grounding, control state, action authority, and recovery.
+The inference is scoped to Language-Table, the listed assets, and the evaluated controller variants. Oracle-feedback runs diagnose controllability; they are not evidence that the raw visual planner succeeded. Likewise, the 18/18 semantic-suite count measures control of the selected target, while the nine-run language and target-image matrices supply independent grounding denominators. The repeated language and target-image studies use three seeds per condition, and the heterogeneous 18-row suite is not interpreted as 18 independent seeds; the grounded zero variance reflects its shared terminal feedback law. The factor-isolating audit localizes the tested boundary without claiming exhaustive causal decomposition. Input-level occlusion, brightness, viewpoint-proxy, and unknown-target tests are retained in the supplement as robustness checks rather than presented as real-world generalization.
 
-\subsection{Scope of the Finding}
-The attribution claim is scoped to the Language-Table simulator, the listed model assets, the evaluated controller variants, and the 0.08 project criterion. Oracle and visual feedback are compared under matched seeds, but oracle-feedback success is not assigned to the raw video-prediction planner. The 18/18 semantic aggregate measures selected-target control and is complemented by independent grounding denominators of nine language and nine target-image trials. Precision is threshold-sensitive (3/18 at 0.05), and the natural-event comparison covers already-successful runs. These boundaries preserve the component-level finding while identifying the evidence needed for broader task, image, and real-camera generalization.
-
-\subsection{From Attribution to a Visual Closed Loop}
-The next step follows directly from the measured oracle-to-vision gap. Synchronized RGB/state traces can quantify target-centroid error, end-effector error, goal-distance MAE, visibility F1, and temporal consistency before the detector/tracker is re-evaluated against oracle feedback on matched seeds. The same controller interface supports confidence-gated updates without changing the semantic layer, preserving the attribution design.
-
-Recovery and grounding should then be expanded together: more instructions and target images, randomized semantic faults and failure times, and matched no-query, forced-query, and natural-event conditions. Final distance, 0.05/0.08 success, recovery latency, query count, and runtime would extend the present component-level evidence into a broader closed-loop evaluation.
+The measured oracle-to-vision gap also defines the next experiment. Synchronized RGB/state traces should quantify target-centroid error, end-effector error, goal-distance mean absolute error, visibility F1, and temporal consistency before repeating the matched oracle-versus-vision evaluation. Confidence-gated updates can then be added without changing the semantic interface, preserving the same attribution design. Recovery can be extended with randomized fault times and matched no-query, forced-query, and natural-event conditions.
 
 \subsection{Data and Code Availability}
-The public repository at \url{https://github.com/yixiaogithub66/vlmpc-language-table-reproduction-audit} and the accompanying v1.0.10 artifact include the manuscript source, authoritative 2026-09-22 and 2026-09-23 per-run and aggregate CSVs, the portable robustness-edge CSV and inputs, exact method parameters, a reproducible figure script, source and runtime-asset manifests, and an automated consistency check. The artifact deliberately excludes credentials, private endpoint addresses, local absolute paths, virtual environments, raw service logs, and third-party model weights. Reported aggregates can be recomputed from the included portable files without cached VLM responses. End-to-end reruns additionally require independently obtained detector, tracker, and video-prediction checkpoints, the `codex` CLI, and a separately configured isolated `CODEX\_HOME` profile for the CodexCLIClient, as documented in the reproduction guide.
+The public repository contains the manuscript source, authoritative per-run and aggregate CSVs, exact parameters, figure-generation code, source/runtime manifests, and an automated consistency check. Credentials, private endpoints, local paths, raw service logs, and third-party weights are excluded; included aggregates can be recomputed from the portable files. The robustness-edge cases in Table~\ref{tab:robust} and representative execution in Fig.~\ref{fig:qualitative} are supplied as portable supplementary evidence, not as claims of real-world generalization.
 
 \section{Conclusion}
-We introduced an execution-authority audit that separates target selection, state source, raw planning, executed action, and closed-loop completion in a VLMPC-style Language-Table system. The audit reveals a decisive feedback-source gap: under the same semantic controller and seeds, oracle state yields 6/6 successes and detector/tracker feedback yields 0/6, while grounded logs show 23/23 raw-action replacements in every run. Independent evaluations demonstrate 9/9 language-grounding matches, 8/9 target-image matches, and 6/6 semantic-fault repairs with 5/6 true-target completions versus 0/6 controls. These results locate the current bottleneck in visual state estimation and action authority. The audit provides a reusable way to assign component responsibility before aggregate manipulation results are interpreted.
+We introduced an execution-authority audit that separates target selection, state source, raw planning, executed action, and task outcome. Matched evidence identifies feedback estimation and action authority as the dominant tested bottleneck, while independent evaluations verify repeated grounding and semantic-fault recovery. The protocol provides a traceable basis for assigning component responsibility before aggregate VLMPC results are interpreted.
 
-\IEEEtriggeratref{7}
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
 
