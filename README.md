@@ -1,6 +1,6 @@
 # VLMPC Language-Table Reproduction Audit
 
-## Revision artifact v1.0.10
+## Revision artifact v1.0.11
 
 This package accompanies the revised manuscript **Traceable Reproduction Audit and Feedback-Assisted Diagnostics for VLMPC-Style Language-Table Pushing**. It contains the manuscript source, regenerated figures, sanitized experiment summaries, portable source snapshots, and verification scripts for the complete revision experiment suite.
 

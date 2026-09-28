@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.11
+
+- Registered the updated five-page manuscript layout and author/affiliation formatting supplied in the latest manuscript commit.
+- Repackaged the validated evidence set under v1.0.11 without changing the authoritative experimental data or reported counts.
+
 ## v1.0.10
 
 - Restored the registered manuscript title, synchronized the submission metadata and release references, and rebuilt the compiled PDF.
